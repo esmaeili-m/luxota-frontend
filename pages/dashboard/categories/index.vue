@@ -19,10 +19,12 @@
             Categories
           </div>
           <div class="prism-toggle">
-            <button @click="fetchLanguages" class="btn btn-sm btn-success-light mx-1 modal-effect" data-bs-effect="effect-flip-vertical" data-bs-toggle="modal" href="#create">Create Category<i
+            <button @click="fetchLanguages"
+                    class="btn btn-sm btn-success-light mx-1 modal-effect"
+                    data-bs-effect="effect-flip-vertical" data-bs-toggle="modal" href="#create">Create Category<i
                 class="ri-add-line ms-2 d-inline-block align-middle"></i></button>
-            <button class="btn btn-sm btn-warning-light">Trash<i
-                class="ri-delete-bin-line ms-2 d-inline-block align-middle"></i></button>
+            <NuxtLink to="/dashboard/categories/trash" class="btn btn-sm btn-warning-light">Trash<i
+                class="ri-delete-bin-line ms-2 d-inline-block align-middle"></i></NuxtLink>
           </div>
         </div>
         <div class="card-body">
@@ -80,11 +82,12 @@
                       <li>
                         <hr class="dropdown-divider">
                       </li>
-                      <li><a class="dropdown-item" href="javascript:void(0);">Update</a></li>
+                      <li><a @click="openModal(category)"
+                              class="dropdown-item modal-effect" data-bs-effect="effect-flip-vertical" data-bs-toggle="modal" href="#create">Update</a></li>
                       <li>
                         <hr class="dropdown-divider">
                       </li>
-                      <li><a class="dropdown-item" href="javascript:void(0);">Delete</a></li>
+                      <li><a data-bs-toggle="modal" data-bs-target="#delete"  @click="setCategory(category.id)" class="dropdown-item"  href="#delete">Delete</a></li>
 
                     </ul>
                   </div>
@@ -179,12 +182,12 @@
                       type="text"
                       class="form-control"
                       :id="`title-${language.id}`"
-                      :class="{ 'is-invalid': errors[`titles.${language.id}`] }"
-                      v-model="formData.titles[language.id]"
+                      :class="{ 'is-invalid': errors[`titles.${language.iso}`] }"
+                      v-model="formData.titles[language.iso]"
                       :placeholder="`Enter title for ${language.title}`"
                   />
-                  <div class="invalid-feedback" v-if="errors[`titles.${language.id}`]">
-                    {{ errors[`titles.${language.id}`] }}
+                  <div class="invalid-feedback" v-if="errors[`titles.${language.iso}`]">
+                    {{ errors[`titles.${language.iso}`] }}
                   </div>
                 </div>
 
@@ -194,12 +197,12 @@
                       type="text"
                       class="form-control"
                       :id="`subtitle-${language.id}`"
-                      :class="{ 'is-invalid': errors[`subtitles.${language.id}`] }"
-                      v-model="formData.subtitles[language.id]"
+                      :class="{ 'is-invalid': errors[`subtitles.${language.iso}`] }"
+                      v-model="formData.subtitles[language.iso]"
                       :placeholder="`Enter subtitle for ${language.title}`"
                   />
-                  <div class="invalid-feedback" v-if="errors[`subtitles.${language.id}`]">
-                    {{ errors[`subtitles.${language.id}`] }}
+                  <div class="invalid-feedback" v-if="errors[`subtitles.${language.iso}`]">
+                    {{ errors[`subtitles.${language.iso}`] }}
                   </div>
                 </div>
               </div>
@@ -232,6 +235,36 @@
       </div>
     </div>
   </div>
+  <div class="modal fade" id="delete" tabindex="-1" aria-labelledby="delete" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog">
+      <div class="modal-content">
+
+        <div class="modal-header">
+          <h5 class="modal-title" id="deleteModalLabel">Delete Category</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <p>Are you sure you want to delete category <strong>{{ categoryName }}</strong>?</p>
+          <p class="text-danger">Warning: Deleting this category will also delete all its subcategories.</p>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button
+              :disabled="isDeleting"
+              type="button"
+              class="btn btn-danger"
+              :class="{ 'opacity-50': isDeleting }"
+              @click="confirmDeleteCategory"
+          >
+            {{ isDeleting ? 'Loading...' : 'Yes, Delete' }}
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
 
 </template>
 <script setup>
@@ -254,15 +287,16 @@ const formData = reactive({
   subtitles: {},
   image: null,
 })
-
 const errors = reactive({})
+const selectedCategoryId = ref(null)
+const isDeleting = ref(false)
+function setCategory(id) {
+  selectedCategoryId.value = id
+}
 function closeModalAndResetForm() {
-  // بستن مدال
   const modalEl = document.getElementById('create')
   const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl)
   modal.hide()
-
-  // ریست کردن داده‌های فرم
   formData.image = null
   imagePreview.value = null
   Object.keys(formData.titles).forEach(key => {
@@ -281,93 +315,9 @@ function closeModalAndResetForm() {
   const fileInput = document.getElementById('category-image')
   if (fileInput) fileInput.value = ''
 }
-
-function validateForm() {
-  Object.keys(errors).forEach(key => delete errors[key])
-
-  languages.value.forEach(lang => {
-    if (!formData.titles[lang.id]) {
-      errors[`titles.${lang.id}`] = `Title (${lang.iso}) is required.`
-    }
-    if (!formData.subtitles[lang.id]) {
-      errors[`subtitles.${lang.id}`] = `Subtitle (${lang.iso}) is required.`
-    }
-  })
-
-  if (!formData.image) {
-    errors.image = 'Image is required.'
-  }
-
-  return Object.keys(errors).length === 0
-}
-function preparePayload() {
-  const title = {}
-  const subtitles = {}
-
-  languages.value.forEach(lang => {
-    title[lang.iso] = {
-      title: formData.titles[lang.id],
-    }
-    subtitles[lang.iso] = {
-      subtitle: formData.subtitles[lang.id]
-    }
-  })
-
-  return {
-    image: formData.image,
-    title:title,
-    subtitle:subtitle,
-  }
-}
-async function handleSubmit() {
-  if (!validateForm()) return
-
-  const payload = new FormData()
-  const title = {}
-  const subtitle = {}
-  languages.value.forEach(lang => {
-    title[lang.iso] = formData.titles[lang.id] || ''
-    subtitle[lang.iso] = formData.subtitles[lang.id] || ''
-  })
-  Object.keys(title).forEach(lang => {
-    payload.append(`title[${lang}]`, title[lang])
-  })
-
-  Object.keys(subtitle).forEach(lang => {
-    payload.append(`subtitle[${lang}]`, subtitle[lang])
-  })
-  if (formData.image) {
-    payload.append('image', formData.image)
-  }
-  try {
-    await useFetch('/categories', {
-      method: 'POST',
-      body: payload,
-      baseURL: config.public.apiBase,
-      headers: {
-        'Accept': 'application/json',
-      },
-    })
-    await fetchCategories()
-    closeModalAndResetForm()
-    Object.assign(formData.titles, {})
-    Object.assign(formData.subtitles, {})
-    formData.image = null
-    imagePreview.value = null
-
-  } catch (e) {
-    console.error('Error sending data:', e)
-  }
-}
-
-
-
-
-
 watchEffect(() => {
   fetchCategories()
 })
-
 async function fetchCategories() {
   error.value = null
   isLoadingCategories.value = true
@@ -382,8 +332,8 @@ async function fetchCategories() {
     isLoadingCategories.value = false
   }
 }
-
 async function fetchLanguages() {
+  resetData()
   if (languages.value === null) {
     isLoadingModalData.value = true
     try {
@@ -392,13 +342,12 @@ async function fetchLanguages() {
       })
 
       languages.value = responseLanguage.value.data
-
       languages.value.forEach(lang => {
-        if (!(lang.id in formData.titles)) {
-          formData.titles[lang.id] = ''
+        if (!(lang.iso in formData.titles)) {
+          formData.titles[lang.iso] = ''
         }
-        if (!(lang.id in formData.subtitles)) {
-          formData.subtitles[lang.id] = ''
+        if (!(lang.iso in formData.subtitles)) {
+          formData.subtitles[lang.iso] = ''
         }
       })
     } catch (e) {
@@ -411,7 +360,6 @@ async function fetchLanguages() {
 function goToPage(newPage) {
   page.value = newPage
 }
-
 function previewImage(event) {
   const file = event.target.files[0]
   if (file && file.type.startsWith('image/')) {
@@ -421,7 +369,6 @@ function previewImage(event) {
     imagePreview.value = null
   }
 }
-
 async function toggleStatus(category) {
   if (isLoadingId.value) return
   isLoadingId.value = category.id
@@ -437,6 +384,147 @@ async function toggleStatus(category) {
     isLoadingId.value = null
   }
 }
+function validateForm() {
+  Object.keys(errors).forEach(key => delete errors[key])
+
+  languages.value.forEach(lang => {
+    if (!formData.titles[lang.iso]) {
+      errors[`titles.${lang.iso}`] = `Title (${lang.iso}) is required.`
+    }
+    if (!formData.subtitles[lang.iso]) {
+      errors[`subtitles.${lang.iso}`] = `Subtitle (${lang.iso}) is required.`
+    }
+  })
+
+  if (!formData.image) {
+    errors.image = 'Image is required.'
+  }
+
+  return Object.keys(errors).length === 0
+}
+async function handleSubmit() {
+  if (!validateForm()) return
+  const payload = new FormData()
+  const title = {}
+  const subtitle = {}
+  languages.value.forEach(lang => {
+    title[lang.iso] = formData.titles[lang.iso] || ''
+    subtitle[lang.iso] = formData.subtitles[lang.iso] || ''
+  })
+  Object.keys(title).forEach(lang => {
+    payload.append(`title[${lang}]`, title[lang])
+  })
+
+  Object.keys(subtitle).forEach(lang => {
+    payload.append(`subtitle[${lang}]`, subtitle[lang])
+  })
+  if (formData.image instanceof File) {
+    payload.append('image', formData.image);
+  }
+
+  try {
+    if (isEditMode.value && formData.id) {
+      await $fetch(`/categories/${formData.id}`, {
+        method: 'POST',
+        body: payload,
+        baseURL: config.public.apiBase,
+        headers: {
+          'X-HTTP-Method-Override': 'PUT',
+          'Accept': 'application/json',
+        }
+      })
+    } else {
+      await useFetch('/categories', {
+      method: 'POST',
+      body: payload,
+      baseURL: config.public.apiBase,
+      headers: {
+        'Accept': 'application/json',
+      },
+    })
+    }
+    await fetchCategories()
+    closeModalAndResetForm()
+    Object.assign(formData.titles, {})
+    Object.assign(formData.subtitles, {})
+    formData.image = null
+    imagePreview.value = null
+
+  } catch (e) {
+    console.error('Error sending data:', e)
+  }
+}
+function resetData(){
+  formData.image = null
+  imagePreview.value = null
+  Object.keys(formData.titles).forEach(key => {
+    formData.titles[key] = ''
+  })
+  Object.keys(formData.subtitles).forEach(key => {
+    formData.subtitles[key] = ''
+  })
+
+  // پاک کردن خطاها (در صورت وجود)
+  Object.keys(errors).forEach(key => {
+    delete errors[key]
+  })
+}
+const isEditMode = ref(false)
+const currentCategory = ref(null)
+function openModal(category = null) {
+  const modal = document.getElementById('create');
+  modal.classList.add("effect-flip-vertical")
+  fetchLanguages()
+  if (category) {
+    formData.id = category.id
+    isEditMode.value = true
+    currentCategory.value = category
+
+    Object.keys(category.title).forEach(lang => {
+      formData.titles[lang] = category.title[lang]
+    })
+
+    Object.keys(category.subtitle).forEach(lang => {
+      formData.subtitles[lang] = category.subtitle[lang]
+    })
+
+    imagePreview.value = `${config.public.fileBase}/${category.image}`;
+    formData.image = category.image;
+  } else {
+    isEditMode.value = false
+    currentCategory.value = null
+  }
+
+  // باز کردن مدا
+}
+async function confirmDeleteCategory() {
+  if (!selectedCategoryId.value) return
+  isDeleting.value = true
+  try {
+    const { error } = await useFetch(`/categories/${selectedCategoryId.value}`, {
+      method: 'DELETE',
+      baseURL: config.public.apiBase,
+      headers: { Accept: 'application/json' },
+    })
+    const modalEl = document.getElementById('delete')
+    const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl)
+    modal.hide()
+    if (error.value) {
+      alert('Failed to delete category.')
+      console.error(error.value)
+      return
+    }
+
+    await fetchCategories()
+  } catch (e) {
+    console.error(e)
+    alert('An error occurred during deletion.')
+  } finally {
+    isDeleting.value = false
+    selectedCategoryId.value = null
+  }
+}
+
 </script>
 
 
