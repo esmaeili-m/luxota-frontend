@@ -51,8 +51,13 @@
                       <span class="visually-hidden">Toggle Dropdown</span>
                     </button>
                     <ul class="dropdown-menu">
+                      <li><a
+                          :disabled="isLoadingId === category.id"
+                          class="dropdown-item modal-effect" @click="restoreCategory(category.id)"
+                          :class="{ 'opacity-50': isDeleting }"
+                          href="javascript:void(0);">{{ isDeleting ? 'Loading...' : 'Restore' }}</a></li>
+                      <li><a data-bs-effect="effect-flip-vertical"  data-bs-toggle="modal" data-bs-target="#delete" class="dropdown-item modal-effect" @click="setCategory(category.id)" href="javascript:void(0);">Delete</a></li>
 
-                      <li><a  data-bs-toggle="modal" data-bs-target="#delete" class="dropdown-item" @click="setCategory(category.id)" href="javascript:void(0);">Delete</a></li>
 
                     </ul>
                   </div>
@@ -150,10 +155,12 @@
 definePageMeta({
   layout: 'dashboard',
 })
+const nuxtApp = useNuxtApp()
 
 const config = useRuntimeConfig()
 const selectedCategoryId = ref(null)
 const isDeleting = ref(false)
+const isLoadingId = ref(false)
 function setCategory(id) {
   selectedCategoryId.value = id
 }
@@ -187,7 +194,12 @@ async function confirmDeleteCategory() {
     const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl)
     modal.hide()
     reloadCategories()
-    alert('Category deleted successfully.')
+    nuxtApp.$toast({
+      title: 'success!',
+      message: 'Category Deleted successfully.',
+      type: 'success',
+      duration: 3000
+    })
   } catch (e) {
     console.error(e)
     alert('An error occurred during deletion.')
@@ -196,6 +208,28 @@ async function confirmDeleteCategory() {
     selectedCategoryId.value = null
   }
 }
+async function restoreCategory(categoryId) {
+  try {
+    isLoadingId.value = categoryId;
+
+    await $fetch(`/categories/${categoryId}/restore`, {
+      method: 'POST',
+      baseURL: config.public.apiBase,
+    });
+    nuxtApp.$toast({
+      title: 'success!',
+      message: 'Category Restore successfully.',
+      type: 'success',
+      duration: 3000
+    })
+    reloadCategories()
+  } catch (error) {
+    console.error('Error restoring category:', error);
+  } finally {
+    isLoadingId.value = null;
+  }
+}
+
 </script>
 
 

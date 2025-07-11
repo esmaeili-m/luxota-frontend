@@ -1,16 +1,34 @@
-(function () {
+document.addEventListener("DOMContentLoaded", function () {
     "use strict";
-        document.querySelectorAll(".modal-effect").forEach(e => {
-            e.addEventListener('click', function (e) {
-                e.preventDefault();
-                let effect = this.getAttribute('data-bs-effect');
-                document.querySelector("#create").classList.add(effect);
-            });
-        })
-        /* hide modal effects */
-        document.getElementById("create").addEventListener('hidden.bs.modal', function (e) {
-            let removeClass = this.classList.value.match(/(^|\s)effect-\S+/g);
-            removeClass = removeClass[0].trim();
-            this.classList.remove(removeClass);
+
+    document.addEventListener('click', function (e) {
+        const trigger = e.target.closest('.modal-effect');
+        if (!trigger) return;
+        e.preventDefault();
+        const effect = trigger.getAttribute('data-bs-effect');
+        const targetSelector = trigger.getAttribute('data-bs-target');
+        const targetModal = document.querySelector(targetSelector);
+        if (!targetModal) return;
+        targetModal.classList.forEach(cls => {
+            if (cls.startsWith('effect-')) {
+                targetModal.classList.remove(cls);
+            }
         });
-})();
+        if (effect) {
+            targetModal.classList.add(effect);
+        }
+        const modalInstance = bootstrap.Modal.getOrCreateInstance(targetModal);
+        modalInstance.show();
+        const removeEffect = function () {
+            targetModal.classList.forEach(cls => {
+                if (cls.startsWith('effect-')) {
+                    targetModal.classList.remove(cls);
+                }
+            });
+
+            targetModal.removeEventListener('hidden.bs.modal', removeEffect);
+        };
+
+        targetModal.addEventListener('hidden.bs.modal', removeEffect);
+    });
+});

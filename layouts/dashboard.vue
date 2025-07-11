@@ -17,7 +17,6 @@
 import SidebarDashboard from '~/components/dashboard/SidebarDashboard.vue'
 import HeaderDashboard from '~/components/dashboard/HeaderDashboard.vue'
 import SettingsDashboard from '~/components/dashboard/SettingsDashboard.vue'
-
 useHead({
   title: 'Luxota Dashboard Panel',
   meta: [
@@ -63,6 +62,7 @@ useHead({
     { src: '/dashboard-assets/js/custom-switcher.min.js', defer: true },
     { src: '/dashboard-assets/js/modal.js', defer: true },
     { src: '/dashboard-assets/js/custom.js', defer: true },
+    { src: '/dashboard-assets/js/Toasts.js', defer: true },
 ]
 })
 </script>

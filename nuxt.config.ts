@@ -7,5 +7,6 @@ export default defineNuxtConfig({
       apiBase: 'http://localhost:8000/api/v1',
       fileBase: 'http://localhost:8000/storage'
     }
-  }
+  },
+
 })

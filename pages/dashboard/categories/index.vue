@@ -5,7 +5,6 @@
     <div class="ms-md-1 ms-0">
       <nav>
         <ol class="breadcrumb mb-0">
-          <li class="breadcrumb-item"><a href="#">Main</a></li>
           <li class="breadcrumb-item active" aria-current="page">Categories</li>
         </ol>
       </nav>
@@ -21,7 +20,7 @@
           <div class="prism-toggle">
             <button @click="fetchLanguages"
                     class="btn btn-sm btn-success-light mx-1 modal-effect"
-                    data-bs-effect="effect-flip-vertical" data-bs-toggle="modal" href="#create">Create Category<i
+                    data-bs-target="#create" data-bs-effect="effect-flip-vertical" data-bs-toggle="modal" href="#create">Create Category<i
                 class="ri-add-line ms-2 d-inline-block align-middle"></i></button>
             <NuxtLink to="/dashboard/categories/trash" class="btn btn-sm btn-warning-light">Trash<i
                 class="ri-delete-bin-line ms-2 d-inline-block align-middle"></i></NuxtLink>
@@ -45,7 +44,7 @@
               </thead>
               <tbody>
               <tr v-for="(category, index) in categories?.data" :key="category.id">
-                <td >{{ index + 1 }}</td>
+                <td >{{ (page - 1) * perPage + index + 1 }}</td>
                 <td>{{ category.title.en }}</td>
                 <td>
                     <span
@@ -83,11 +82,11 @@
                         <hr class="dropdown-divider">
                       </li>
                       <li><a @click="openModal(category)"
-                              class="dropdown-item modal-effect" data-bs-effect="effect-flip-vertical" data-bs-toggle="modal" href="#create">Update</a></li>
+                             data-bs-target="#create" data-bs-effect="effect-flip-vertical" data-bs-toggle="modal" href="#create" class="dropdown-item modal-effect"  >Update</a></li>
                       <li>
                         <hr class="dropdown-divider">
                       </li>
-                      <li><a data-bs-toggle="modal" data-bs-target="#delete"  @click="setCategory(category.id)" class="dropdown-item"  href="#delete">Delete</a></li>
+                      <li><a data-bs-toggle="modal" data-bs-effect="effect-flip-vertical" data-bs-target="#delete"  @click="setCategory(category.id)" class="dropdown-item modal-effect"  href="#delete">Delete</a></li>
 
                     </ul>
                   </div>
@@ -159,6 +158,7 @@
               type="button"
               class="btn-close"
               data-bs-dismiss="modal"
+
               aria-label="Close"
           ></button>
         </div>
@@ -227,7 +227,11 @@
             </div>
 
             <div class="modal-footer">
-              <button type="submit" class="btn btn-primary">Save changes</button>
+              <button type="submit" :disabled="createCategory" class="btn btn-primary" :class="{ 'opacity-50': createCategory }">
+
+                {{ isDeleting ? 'Loading...' : 'Create Category' }}
+
+              </button>
               <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
             </div>
           </form>
@@ -269,10 +273,10 @@
 </template>
 <script setup>
 import {ref, watchEffect, reactive } from 'vue'
+const nuxtApp = useNuxtApp()
 definePageMeta({
   layout: 'dashboard',
 })
-
 const config = useRuntimeConfig()
 const isLoadingModalData = ref(false)
 const isLoadingCategories = ref(false)
@@ -290,6 +294,7 @@ const formData = reactive({
 const errors = reactive({})
 const selectedCategoryId = ref(null)
 const isDeleting = ref(false)
+const createCategory = ref(false)
 function setCategory(id) {
   selectedCategoryId.value = id
 }
@@ -404,6 +409,7 @@ function validateForm() {
 }
 async function handleSubmit() {
   if (!validateForm()) return
+  createCategory.value = true
   const payload = new FormData()
   const title = {}
   const subtitle = {}
@@ -433,16 +439,30 @@ async function handleSubmit() {
           'Accept': 'application/json',
         }
       })
+      nuxtApp.$toast({
+        title: 'success!',
+        message: 'Category updated successfully.',
+        type: 'success',
+        duration: 3000
+      })
+
     } else {
-      await useFetch('/categories', {
-      method: 'POST',
-      body: payload,
-      baseURL: config.public.apiBase,
-      headers: {
-        'Accept': 'application/json',
-      },
-    })
+        await useFetch('/categories', {
+        method: 'POST',
+        body: payload,
+        baseURL: config.public.apiBase,
+        headers: {
+          'Accept': 'application/json',
+        },
+      })
+      nuxtApp.$toast({
+          title: 'success!',
+          message: 'Category created successfully.',
+          type: 'success',
+          duration: 3000
+        })
     }
+    createCategory.value = false
     await fetchCategories()
     closeModalAndResetForm()
     Object.assign(formData.titles, {})
@@ -472,8 +492,6 @@ function resetData(){
 const isEditMode = ref(false)
 const currentCategory = ref(null)
 function openModal(category = null) {
-  const modal = document.getElementById('create');
-  modal.classList.add("effect-flip-vertical")
   fetchLanguages()
   if (category) {
     formData.id = category.id
@@ -509,12 +527,18 @@ async function confirmDeleteCategory() {
     const modalEl = document.getElementById('delete')
     const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl)
     modal.hide()
+
     if (error.value) {
       alert('Failed to delete category.')
       console.error(error.value)
       return
     }
-
+    nuxtApp.$toast({
+      title: 'success!',
+      message: 'Category moved to trash.',
+      type: 'success',
+      duration: 3000
+    })
     await fetchCategories()
   } catch (e) {
     console.error(e)
@@ -524,7 +548,6 @@ async function confirmDeleteCategory() {
     selectedCategoryId.value = null
   }
 }
-
 </script>
 
 
