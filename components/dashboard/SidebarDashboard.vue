@@ -30,6 +30,18 @@
               <span class="side-menu__label">Categories</span>
             </NuxtLink>
           </li>
+          <li class="slide">
+            <NuxtLink to="/dashboard/products" class="side-menu__item">
+              <i class="bx bx-store side-menu__icon"></i>
+              <span class="side-menu__label">Products</span>
+            </NuxtLink>
+          </li>
+          <li class="slide">
+            <NuxtLink to="/dashboard/roles" class="side-menu__item">
+              <i class="bx bx-user-check side-menu__icon"></i>
+              <span class="side-menu__label">Roles</span>
+            </NuxtLink>
+          </li>
 
           <!-- Start::slide -->
           <li class="slide has-sub">

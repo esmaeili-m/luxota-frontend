@@ -20,8 +20,9 @@
           <div class="prism-toggle">
             <button @click="fetchLanguages"
                     class="btn btn-sm btn-success-light mx-1 modal-effect"
-                    data-bs-target="#create" data-bs-effect="effect-flip-vertical" data-bs-toggle="modal" href="#create">Create Category<i
-                class="ri-add-line ms-2 d-inline-block align-middle"></i></button>
+                    data-bs-target="#create" data-bs-effect="effect-flip-vertical" data-bs-toggle="modal" href="#create">
+              Create Category<i class="ri-add-line ms-2 d-inline-block align-middle"></i>
+            </button>
             <NuxtLink to="/dashboard/categories/trash" class="btn btn-sm btn-warning-light">Trash<i
                 class="ri-delete-bin-line ms-2 d-inline-block align-middle"></i></NuxtLink>
           </div>
@@ -31,6 +32,9 @@
             <div class="spinner-border text-primary" role="status">
               <span class="visually-hidden">Loading</span>
             </div>
+          </div>
+          <div v-else-if="!categories?.data || categories.data.length === 0">
+            <EmptyState />
           </div>
           <div v-else class="table-responsive">
             <table class="table text-nowrap">
@@ -44,7 +48,7 @@
               </thead>
               <tbody>
               <tr v-for="(category, index) in categories?.data" :key="category.id">
-                <td >{{ (page - 1) * perPage + index + 1 }}</td>
+                <td>{{ (page - 1) * perPage + index + 1 }}</td>
                 <td>{{ category.title.en }}</td>
                 <td>
                     <span
@@ -82,11 +86,11 @@
                         <hr class="dropdown-divider">
                       </li>
                       <li><a @click="openModal(category)"
-                             data-bs-target="#create" data-bs-effect="effect-flip-vertical" data-bs-toggle="modal" href="#create" class="dropdown-item modal-effect"  >Update</a></li>
+                             data-bs-target="#create" data-bs-effect="effect-flip-vertical" data-bs-toggle="modal" href="#create" class="dropdown-item modal-effect" :class="{ 'disabled': isLoadingId === category.id }" :style="{ pointerEvents: isLoadingId === category.id ? 'none' : 'auto' }">Update</a></li>
                       <li>
                         <hr class="dropdown-divider">
                       </li>
-                      <li><a data-bs-toggle="modal" data-bs-effect="effect-flip-vertical" data-bs-target="#delete"  @click="setCategory(category.id)" class="dropdown-item modal-effect"  href="#delete">Delete</a></li>
+                      <li><a data-bs-toggle="modal" data-bs-effect="effect-flip-vertical" data-bs-target="#delete"  @click="setCategory(category.id)" class="dropdown-item modal-effect" href="#delete" :class="{ 'disabled': isLoadingId === category.id }" :style="{ pointerEvents: isLoadingId === category.id ? 'none' : 'auto' }">Delete</a></li>
 
                     </ul>
                   </div>
@@ -208,31 +212,50 @@
               </div>
             </div>
 
-            <div class="mb-3">
-              <label for="category-image" class="form-label">Image</label>
-              <input
-                  id="category-image"
-                  type="file"
-                  accept="image/*"
-                  @change="previewImage"
-                  :class="{ 'is-invalid': errors.image }"
-                  class="form-control"
-              />
-              <div class="invalid-feedback" v-if="errors.image">
-                {{ errors.image }}
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="category-order" class="form-label">Order</label>
+                  <input
+                      type="number"
+                      class="form-control"
+                      :class="{ 'is-invalid': errors.order }"
+                      id="category-order"
+                      v-model="formData.order"
+                      placeholder="Enter order number"
+                      min="1"
+                  />
+                  <div class="invalid-feedback" v-if="errors.order">
+                    {{ errors.order }}
+                  </div>
+                </div>
               </div>
-              <div v-if="imagePreview" class="mt-3 text-center">
-                <img :src="imagePreview" alt="Preview" class="img-thumbnail rounded" style="max-width: 300px;" />
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="category-image" class="form-label">Image</label>
+                  <input
+                      id="category-image"
+                      type="file"
+                      accept="image/*"
+                      @change="previewImage"
+                      :class="{ 'is-invalid': errors.image }"
+                      class="form-control"
+                  />
+                  <div class="invalid-feedback" v-if="errors.image">
+                    {{ errors.image }}
+                  </div>
+                  <div v-if="imagePreview" class="mt-3 text-center">
+                    <img :src="imagePreview" alt="Preview" class="img-thumbnail rounded" style="max-width: 300px;" />
+                  </div>
+                </div>
               </div>
             </div>
 
             <div class="modal-footer">
               <button type="submit" :disabled="createCategory" class="btn btn-primary" :class="{ 'opacity-50': createCategory }">
-
-                {{ isDeleting ? 'Loading...' : 'Create Category' }}
-
+                {{ createCategory ? 'Loading...' : (isEditMode ? 'Update Category' : 'Create Category') }}
               </button>
-              <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+              <button type="button" class="btn btn-light" data-bs-dismiss="modal" :disabled="createCategory">Close</button>
             </div>
           </form>
         </div>
@@ -254,7 +277,7 @@
         </div>
 
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" :disabled="isDeleting">Cancel</button>
           <button
               :disabled="isDeleting"
               type="button"
@@ -282,6 +305,7 @@ const isLoadingModalData = ref(false)
 const isLoadingCategories = ref(false)
 const imagePreview = ref(null)
 const page = ref(1)
+const perPage = ref(15)
 const categories = ref(null)
 const languages = ref(null)
 const error = reactive({})
@@ -289,6 +313,7 @@ const isLoadingId = ref(null)
 const formData = reactive({
   titles: {},
   subtitles: {},
+  order: '',
   image: null,
 })
 const errors = reactive({})
@@ -303,6 +328,7 @@ function closeModalAndResetForm() {
   const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl)
   modal.hide()
   formData.image = null
+  formData.order = ''
   imagePreview.value = null
   Object.keys(formData.titles).forEach(key => {
     formData.titles[key] = ''
@@ -424,6 +450,9 @@ async function handleSubmit() {
   Object.keys(subtitle).forEach(lang => {
     payload.append(`subtitle[${lang}]`, subtitle[lang])
   })
+  if (formData.order) {
+    payload.append('order', formData.order);
+  }
   if (formData.image instanceof File) {
     payload.append('image', formData.image);
   }
@@ -468,6 +497,7 @@ async function handleSubmit() {
     Object.assign(formData.titles, {})
     Object.assign(formData.subtitles, {})
     formData.image = null
+    formData.order = ''
     imagePreview.value = null
 
   } catch (e) {
@@ -476,6 +506,7 @@ async function handleSubmit() {
 }
 function resetData(){
   formData.image = null
+  formData.order = ''
   imagePreview.value = null
   Object.keys(formData.titles).forEach(key => {
     formData.titles[key] = ''
@@ -506,6 +537,7 @@ function openModal(category = null) {
       formData.subtitles[lang] = category.subtitle[lang]
     })
 
+    formData.order = category.order || ''
     imagePreview.value = `${config.public.fileBase}/${category.image}`;
     formData.image = category.image;
   } else {

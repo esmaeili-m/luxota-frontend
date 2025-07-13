@@ -1,12 +1,12 @@
 <!-- pages/index.vue -->
 <template>
   <div class="d-md-flex d-block align-items-center justify-content-between my-4 page-header-breadcrumb">
-    <h1 class="page-title fw-semibold fs-18 mb-0">Trashed Categories</h1>
+    <h1 class="page-title fw-semibold fs-18 mb-0">Trashed Roles</h1>
     <div class="ms-md-1 ms-0">
       <nav>
         <ol class="breadcrumb mb-0">
-          <li class="breadcrumb-item"><nuxt-link to="/dashboard/categories">Categories</nuxt-link></li>
-          <li class="breadcrumb-item active" aria-current="page">Trashed Categories</li>
+          <li class="breadcrumb-item"><nuxt-link to="/dashboard/roles">Roles</nuxt-link></li>
+          <li class="breadcrumb-item active" aria-current="page">Trashed Roles</li>
         </ol>
       </nav>
     </div>
@@ -16,21 +16,21 @@
       <div class="card custom-card">
         <div class="card-header justify-content-between">
           <div class="card-title">
-            Trash Categories
+            Trash Roles
           </div>
           <div class="prism-toggle">
-            <NuxtLink to="/dashboard/categories" class="btn btn-sm btn-primary-light">Back to Categories<i
+            <NuxtLink to="/dashboard/roles" class="btn btn-sm btn-primary-light">Back to Roles<i
                 class="ri-arrow-left-line ms-2 d-inline-block align-middle"></i></NuxtLink>
-            
+
           </div>
         </div>
         <div class="card-body">
-          <div v-if="isLoadingCategories" class="text-center my-3">
+          <div v-if="isLoadingRoles" class="text-center my-3">
             <div class="spinner-border text-primary" role="status">
               <span class="visually-hidden">Loading</span>
             </div>
           </div>
-          <div v-else-if="!categories?.data || categories.data.length === 0">
+          <div v-else-if="!roles?.data || roles.data.length === 0">
             <EmptyState icon-class="ri-delete-bin-line" />
           </div>
           <div v-else class="table-responsive">
@@ -43,9 +43,9 @@
               </tr>
               </thead>
               <tbody>
-              <tr v-for="(category, index) in categories?.data" :key="category.id">
+              <tr v-for="(role, index) in roles?.data" :key="role.id">
                 <td >{{ index + 1 }}</td>
-                <td>{{ category.title.en }}</td>
+                <td>{{ role.title }}</td>
                 <td>
                   <div class="btn-group my-1">
                     <button type="button" class="btn btn-sm btn-light">...</button>
@@ -56,11 +56,9 @@
                     </button>
                     <ul class="dropdown-menu">
                       <li><a
-                          :disabled="isLoadingId === category.id"
-                          class="dropdown-item modal-effect" @click="restoreCategory(category.id)"
-                          :class="{ 'opacity-50': isDeleting }"
-                          href="javascript:void(0);">{{ isDeleting ? 'Loading...' : 'Restore' }}</a></li>
-                      <li><a data-bs-effect="effect-flip-vertical"  data-bs-toggle="modal" data-bs-target="#delete" class="dropdown-item modal-effect" @click="setCategory(category.id)" href="javascript:void(0);">Delete</a></li>
+                          class="dropdown-item modal-effect" @click="restoreRole(role.id)"
+                          href="javascript:void(0);">Restore</a></li>
+                      <li><a data-bs-effect="effect-flip-vertical"  data-bs-toggle="modal" data-bs-target="#delete" class="dropdown-item modal-effect" @click="setRole(role.id)" href="javascript:void(0);">Delete</a></li>
 
 
                     </ul>
@@ -77,22 +75,22 @@
               <ul class="pagination mb-0 flex-wrap">
                 <li
                     class="page-item"
-                    :class="{ disabled: categories?.meta?.current_page === 1 }"
+                    :class="{ disabled: roles?.meta?.current_page === 1 }"
                 >
                   <a
                       class="page-link"
                       href="#"
-                      @click.prevent="goToPage(categories.meta.current_page - 1)"
+                      @click.prevent="goToPage(roles.meta.current_page - 1)"
                   >
                     Prev
                   </a>
                 </li>
 
                 <li
-                    v-for="pageNumber in categories?.meta?.last_page"
+                    v-for="pageNumber in roles?.meta?.last_page"
                     :key="pageNumber"
                     class="page-item"
-                    :class="{ active: pageNumber === categories?.meta?.current_page }"
+                    :class="{ active: pageNumber === roles?.meta?.current_page }"
                 >
                   <a class="page-link" href="#" @click.prevent="goToPage(pageNumber)">
                     {{ pageNumber }}
@@ -101,12 +99,12 @@
 
                 <li
                     class="page-item"
-                    :class="{ disabled: categories?.meta?.current_page === categories?.meta?.last_page }"
+                    :class="{ disabled: roles?.meta?.current_page === roles?.meta?.last_page }"
                 >
                   <a
                       class="page-link text-primary"
                       href="#"
-                      @click.prevent="goToPage(categories.meta.current_page + 1)"
+                      @click.prevent="goToPage(roles.meta.current_page + 1)"
                   >
                     Next
                   </a>
@@ -125,14 +123,14 @@
       <div class="modal-content">
 
         <div class="modal-header">
-          <h6 class="modal-title" id="deleteModalLabel">Delete Category</h6>
+          <h6 class="modal-title" id="deleteModalLabel">Delete Role</h6>
           <button type="button" class="btn-close" data-bs-dismiss="modal"
                   aria-label="Close"></button>
         </div>
 
         <div class="modal-body">
-          <p>Are you sure you want to delete this category?</p>
-          <p class="text-danger mb-0">Warning: Deleting this category will also delete all its subcategories.</p>
+          <p>Are you sure you want to delete this role?</p>
+          <p class="text-danger mb-0">Warning: Deleting this role will also delete all its subroles.</p>
         </div>
 
         <div class="modal-footer">
@@ -144,7 +142,7 @@
               type="button"
               class="btn btn-danger"
               :class="{ 'opacity-50': isDeleting }"
-              @click="confirmDeleteCategory"
+              @click="confirmDeleteRole"
           >
             {{ isDeleting ? 'Loading...' : 'Yes, Delete' }}
           </button>
@@ -162,16 +160,16 @@ definePageMeta({
 const nuxtApp = useNuxtApp()
 
 const config = useRuntimeConfig()
-const selectedCategoryId = ref(null)
+const selectedRoleId = ref(null)
 const isDeleting = ref(false)
 const isLoadingId = ref(false)
-function setCategory(id) {
-  selectedCategoryId.value = id
+function setRole(id) {
+  selectedRoleId.value = id
 }
-const { data: categories, pending: isLoadingCategories, error, refresh: reloadCategories } = await useAsyncData(
-    'categories-trash',
+const { data: roles, pending: isLoadingRoles, error, refresh: reloadRoles } = await useAsyncData(
+    'roles-trash',
     () =>
-        $fetch('/categories/trash', {
+        $fetch('/roles/trash', {
           baseURL: config.public.apiBase,
           headers: {
             Accept: 'application/json',
@@ -179,28 +177,28 @@ const { data: categories, pending: isLoadingCategories, error, refresh: reloadCa
         })
 )
 
-async function confirmDeleteCategory() {
-  if (!selectedCategoryId.value) return
+async function confirmDeleteRole() {
+  if (!selectedRoleId.value) return
 
   isDeleting.value = true
   try {
-    const { error } = await useFetch(`/categories/force-delete/${selectedCategoryId.value}`, {
+    const { error } = await useFetch(`/roles/force-delete/${selectedRoleId.value}`, {
       method: 'DELETE',
       baseURL: config.public.apiBase,
       headers: { Accept: 'application/json' },
     })
     if (error.value) {
-      alert('Failed to delete category.')
+      alert('Failed to delete role.')
       console.error(error.value)
       return
     }
     const modalEl = document.getElementById('delete')
     const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl)
     modal.hide()
-    reloadCategories()
+    reloadRoles()
     nuxtApp.$toast({
       title: 'success!',
-      message: 'Category Deleted successfully.',
+      message: 'Role Deleted successfully.',
       type: 'success',
       duration: 3000
     })
@@ -209,26 +207,25 @@ async function confirmDeleteCategory() {
     alert('An error occurred during deletion.')
   } finally {
     isDeleting.value = false
-    selectedCategoryId.value = null
+    selectedRoleId.value = null
   }
 }
-async function restoreCategory(categoryId) {
+async function restoreRole(roleId) {
   try {
-    isLoadingId.value = categoryId;
-
-    await $fetch(`/categories/${categoryId}/restore`, {
+    isLoadingId.value = roleId;
+    await $fetch(`/roles/${roleId}/restore`, {
       method: 'POST',
       baseURL: config.public.apiBase,
     });
     nuxtApp.$toast({
       title: 'success!',
-      message: 'Category Restore successfully.',
+      message: 'Role Restore successfully.',
       type: 'success',
       duration: 3000
     })
-    reloadCategories()
+    reloadRoles()
   } catch (error) {
-    console.error('Error restoring category:', error);
+    console.error('Error restoring role:', error);
   } finally {
     isLoadingId.value = null;
   }
