@@ -36,13 +36,26 @@
               <span class="side-menu__label">Products</span>
             </NuxtLink>
           </li>
+
+          <li class="slide__category"><span class="category-name">Users</span></li>
           <li class="slide">
             <NuxtLink to="/dashboard/roles" class="side-menu__item">
               <i class="bx bx-user-check side-menu__icon"></i>
               <span class="side-menu__label">Roles</span>
             </NuxtLink>
           </li>
-
+          <li class="slide">
+            <NuxtLink to="/dashboard/zones" class="side-menu__item">
+              <i class="bx bx-map side-menu__icon"></i>
+              <span class="side-menu__label">Zones</span>
+            </NuxtLink>
+          </li>
+          <li class="slide">
+            <NuxtLink to="/dashboard/referrers" class="side-menu__item">
+              <i class="bx bx-share-alt side-menu__icon"></i>
+              <span class="side-menu__label">Referrers</span>
+            </NuxtLink>
+          </li>
           <!-- Start::slide -->
           <li class="slide has-sub">
             <a href="javascript:void(0);" class="side-menu__item">
