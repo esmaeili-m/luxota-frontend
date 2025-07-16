@@ -39,6 +39,12 @@
 
           <li class="slide__category"><span class="category-name">Users</span></li>
           <li class="slide">
+            <NuxtLink to="/dashboard/users" class="side-menu__item">
+              <i class="bx bx-user side-menu__icon"></i>
+              <span class="side-menu__label">Users</span>
+            </NuxtLink>
+          </li>
+          <li class="slide">
             <NuxtLink to="/dashboard/roles" class="side-menu__item">
               <i class="bx bx-user-check side-menu__icon"></i>
               <span class="side-menu__label">Roles</span>
@@ -48,6 +54,30 @@
             <NuxtLink to="/dashboard/zones" class="side-menu__item">
               <i class="bx bx-map side-menu__icon"></i>
               <span class="side-menu__label">Zones</span>
+            </NuxtLink>
+          </li>
+          <li class="slide">
+            <NuxtLink to="/dashboard/ranks" class="side-menu__item">
+              <i class="bx bx-trophy side-menu__icon"></i>
+              <span class="side-menu__label">Ranks</span>
+            </NuxtLink>
+          </li>
+          <li class="slide">
+            <NuxtLink to="/dashboard/branches" class="side-menu__item">
+              <i class="bx bx-git-branch side-menu__icon"></i>
+              <span class="side-menu__label">Branches</span>
+            </NuxtLink>
+          </li>
+          <li class="slide">
+            <NuxtLink to="/dashboard/countries" class="side-menu__item">
+              <i class="bx bx-globe side-menu__icon"></i>
+              <span class="side-menu__label">Countries</span>
+            </NuxtLink>
+          </li>
+          <li class="slide">
+            <NuxtLink to="/dashboard/cities" class="side-menu__item">
+              <i class="bx bx-building-house side-menu__icon"></i>
+              <span class="side-menu__label">Cities</span>
             </NuxtLink>
           </li>
           <li class="slide">

@@ -1,11 +1,11 @@
 <!-- pages/index.vue -->
 <template>
   <div class="d-md-flex d-block align-items-center justify-content-between my-4 page-header-breadcrumb">
-    <h1 class="page-title fw-semibold fs-18 mb-0">Roles</h1>
+    <h1 class="page-title fw-semibold fs-18 mb-0">Branches</h1>
     <div class="ms-md-1 ms-0">
       <nav>
         <ol class="breadcrumb mb-0">
-          <li class="breadcrumb-item active" aria-current="page">Roles</li>
+          <li class="breadcrumb-item active" aria-current="page">Branches</li>
         </ol>
       </nav>
     </div>
@@ -15,26 +15,25 @@
       <div class="card custom-card">
         <div class="card-header justify-content-between">
           <div class="card-title">
-            Roles
+            Branches
           </div>
           <div class="prism-toggle">
             <button
                     class="btn btn-sm btn-success-light mx-1 modal-effect"
-                    data-bs-target="#create" data-bs-effect="effect-flip-vertical" data-bs-toggle="modal" href="#create"
-                    @click="openModal()">
-              Create Role<i class="ri-add-line ms-2 d-inline-block align-middle"></i>
+                    data-bs-target="#create" data-bs-effect="effect-flip-vertical" data-bs-toggle="modal" href="#create">
+              Create Branch<i class="ri-add-line ms-2 d-inline-block align-middle"></i>
             </button>
-            <NuxtLink to="/dashboard/roles/trash" class="btn btn-sm btn-warning-light">Trash<i
+            <NuxtLink to="/dashboard/branches/trash" class="btn btn-sm btn-warning-light">Trash<i
                 class="ri-delete-bin-line ms-2 d-inline-block align-middle"></i></NuxtLink>
           </div>
         </div>
         <div class="card-body">
-          <div v-if="isLoadingRoles" class="text-center my-3">
+          <div v-if="isLoadingBranches" class="text-center my-3">
             <div class="spinner-border text-primary" role="status">
               <span class="visually-hidden">Loading</span>
             </div>
           </div>
-          <div v-else-if="!roles?.data || roles.data.length === 0">
+          <div v-else-if="!branches?.data || branches.data.length === 0">
             <EmptyState />
           </div>
           <div v-else class="table-responsive">
@@ -42,30 +41,30 @@
               <thead class="table-primary">
               <tr>
                 <th class="col-width-100">#</th>
-                <th >Title</th>
-                <th >Status</th>
-                <th >Action</th>
+                <th>Title</th>
+                <th>Status</th>
+                <th>Action</th>
               </tr>
               </thead>
               <tbody>
-              <tr v-for="(role, index) in roles?.data" :key="role.id">
+              <tr v-for="(branch, index) in branches?.data" :key="branch.id">
                 <td>{{ (page - 1) * perPage + index + 1 }}</td>
-                <td>{{ role.title }}</td>
+                <td>{{ branch.title }}</td>
                 <td>
                     <span
                         class="badge badge-lg rounded-pill cursor-pointer"
                         :class="[
-                      role.status === 1 ? 'bg-success-transparent' : 'bg-danger-transparent',
-                      isLoadingId === role.id ? 'opacity-50' : ''
+                      branch.status === 1 ? 'bg-success-transparent' : 'bg-danger-transparent',
+                      isLoadingId === branch.id ? 'opacity-50' : ''
                     ]"
-                        @click="() => toggleStatus(role)"
-                        :style="{ pointerEvents: isLoadingId === role.id ? 'none' : 'auto' }"
+                        @click="() => toggleStatus(branch)"
+                        :style="{ pointerEvents: isLoadingId === branch.id ? 'none' : 'auto' }"
                     >
-                    <template v-if="isLoadingId === role.id">
+                    <template v-if="isLoadingId === branch.id">
                       Loading...
                     </template>
                     <template v-else>
-                      {{ role.status === 1 ? 'Active' : 'Inactive' }}
+                      {{ branch.status === 1 ? 'Active' : 'Inactive' }}
                     </template>
                   </span>
                 </td>
@@ -78,58 +77,50 @@
                       <span class="visually-hidden">Toggle Dropdown</span>
                     </button>
                     <ul class="dropdown-menu">
-
-                      <li><a @click="openModal(role)"
-                             data-bs-target="#create" data-bs-effect="effect-flip-vertical" data-bs-toggle="modal" href="#create" class="dropdown-item modal-effect" :class="{ 'disabled': isLoadingId === role.id }" :style="{ pointerEvents: isLoadingId === role.id ? 'none' : 'auto' }" :data-role-id="role.id">Update</a></li>
+                      <li><a @click="openModal(branch)"
+                             data-bs-target="#create" data-bs-effect="effect-flip-vertical" data-bs-toggle="modal" href="#create" class="dropdown-item modal-effect" :class="{ 'disabled': isLoadingId === branch.id }" :style="{ pointerEvents: isLoadingId === branch.id ? 'none' : 'auto' }">Update</a></li>
                       <li>
                         <hr class="dropdown-divider">
                       </li>
-                      <li v-if="![1, 2].includes(role.id)"><a data-bs-toggle="modal" data-bs-effect="effect-flip-vertical" data-bs-target="#delete"  @click="setRole(role.id)" class="dropdown-item modal-effect" href="#delete" :class="{ 'disabled': isLoadingId === role.id }" :style="{ pointerEvents: isLoadingId === role.id ? 'none' : 'auto' }">Delete</a></li>
-
+                      <li><a data-bs-toggle="modal" data-bs-effect="effect-flip-vertical" data-bs-target="#delete"  @click="setBranch(branch.id)" class="dropdown-item modal-effect" href="#delete" :class="{ 'disabled': isLoadingId === branch.id }" :style="{ pointerEvents: isLoadingId === branch.id ? 'none' : 'auto' }">Delete</a></li>
                     </ul>
                   </div>
-
                 </td>
               </tr>
-
               </tbody>
-
-
             </table>
             <nav aria-label="Page navigation" class="pagination-style-4 mt-2">
               <ul class="pagination mb-0 flex-wrap">
                 <li
                     class="page-item"
-                    :class="{ disabled: roles?.meta?.current_page === 1 }"
+                    :class="{ disabled: branches?.meta?.current_page === 1 }"
                 >
                   <a
                       class="page-link"
                       href="#"
-                      @click.prevent="goToPage(roles.meta.current_page - 1)"
+                      @click.prevent="goToPage(branches.meta.current_page - 1)"
                   >
                     Prev
                   </a>
                 </li>
-
                 <li
-                    v-for="pageNumber in role?.meta?.last_page"
+                    v-for="pageNumber in branches?.meta?.last_page"
                     :key="pageNumber"
                     class="page-item"
-                    :class="{ active: pageNumber === role?.meta?.current_page }"
+                    :class="{ active: pageNumber === branches?.meta?.current_page }"
                 >
                   <a class="page-link" href="#" @click.prevent="goToPage(pageNumber)">
                     {{ pageNumber }}
                   </a>
                 </li>
-
                 <li
                     class="page-item"
-                    :class="{ disabled: role?.meta?.current_page === role?.meta?.last_page }"
+                    :class="{ disabled: branches?.meta?.current_page === branches?.meta?.last_page }"
                 >
                   <a
                       class="page-link text-primary"
                       href="#"
-                      @click.prevent="goToPage(role.meta.current_page + 1)"
+                      @click.prevent="goToPage(branches.meta.current_page + 1)"
                   >
                     Next
                   </a>
@@ -145,33 +136,29 @@
       class="modal fade"
       id="create"
       tabindex="-1"
-      aria-labelledby="createRoleLabel"
+      aria-labelledby="createBranchLabel"
       aria-hidden="true"
   >
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="createRoleLabel">Create Role</h5>
+          <h5 class="modal-title" id="createBranchLabel">Create Branch</h5>
           <button
               type="button"
               class="btn-close"
               data-bs-dismiss="modal"
-
               aria-label="Close"
           ></button>
         </div>
-
         <div class="modal-body text-start">
-          <!-- Loader -->
           <div v-if="isLoadingModalData" class="text-center my-3">
             <div class="spinner-border text-primary" role="status">
               <span class="visually-hidden">Loading...</span>
             </div>
           </div>
-
           <form v-else @submit.prevent="handleSubmit">
             <div class="row">
-              <div  class="col-12 mb-4">
+              <div class="col-12 mb-4">
                 <div class="mb-2">
                   <label :for="`title`" class="form-label text-muted">Title</label>
                   <input
@@ -179,7 +166,7 @@
                       class="form-control"
                       :class="{ 'is-invalid': errors[`title`] }"
                       v-model="title"
-                      :placeholder="`Enter title `"
+                      :placeholder="`Enter title`"
                   />
                   <div class="invalid-feedback" v-if="errors[`title`]">
                     {{ errors[`title`] }}
@@ -187,13 +174,11 @@
                 </div>
               </div>
             </div>
-
-
             <div class="modal-footer">
-              <button type="submit" :disabled="createRole" class="btn btn-primary" :class="{ 'opacity-50': createRole }">
-                {{ createRole ? 'Loading...' : (isEditMode ? 'Update Role' : 'Create Role') }}
+              <button type="submit" :disabled="createBranch" class="btn btn-primary" :class="{ 'opacity-50': createBranch }">
+                {{ createBranch ? 'Loading...' : (isEditMode ? 'Update Branch' : 'Create Branch') }}
               </button>
-              <button type="button" class="btn btn-light" data-bs-dismiss="modal" :disabled="createRole">Close</button>
+              <button type="button" class="btn btn-light" data-bs-dismiss="modal" :disabled="createBranch">Close</button>
             </div>
           </form>
         </div>
@@ -203,17 +188,14 @@
   <div class="modal fade" id="delete" tabindex="-1" aria-labelledby="delete" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog">
       <div class="modal-content">
-
         <div class="modal-header">
-          <h5 class="modal-title" id="deleteModalLabel">Delete Role</h5>
+          <h5 class="modal-title" id="deleteModalLabel">Delete Branch</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-
         <div class="modal-body">
-          <p>Are you sure you want to delete role <strong>{{ roleName }}</strong>?</p>
-          <p class="text-danger">Warning: Deleting this Role will also delete all its Users.</p>
+          <p>Are you sure you want to delete branch <strong>{{ branchName }}</strong>?</p>
+          <p class="text-danger">Warning: Deleting this Branch will also delete all its related data.</p>
         </div>
-
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" :disabled="isDeleting">Cancel</button>
           <button
@@ -221,128 +203,113 @@
               type="button"
               class="btn btn-danger"
               :class="{ 'opacity-50': isDeleting }"
-              @click="confirmDeleteRole"
+              @click="confirmDeleteBranch"
           >
             {{ isDeleting ? 'Loading...' : 'Yes, Delete' }}
           </button>
         </div>
-
       </div>
     </div>
   </div>
-
 </template>
+
 <script setup>
-import {ref, watchEffect, reactive, onMounted } from 'vue'
+import {ref, watchEffect, reactive } from 'vue'
 const nuxtApp = useNuxtApp()
 definePageMeta({
   layout: 'dashboard',
 })
 const config = useRuntimeConfig()
 const isLoadingModalData = ref(false)
-const isLoadingRoles = ref(false)
+const isLoadingBranches = ref(false)
 const page = ref(1)
 const perPage = ref(15)
-const roles = ref(null)
+const branches = ref(null)
 const title = ref(null)
 const id = ref(null)
 const error = reactive({})
 const isLoadingId = ref(null)
-
 const errors = reactive({})
-const selectedRoleId = ref(null)
+const selectedBranchId = ref(null)
 const isDeleting = ref(false)
-const createRole = ref(false)
-function setRole(id) {
-  selectedRoleId.value = id
+const createBranch = ref(false)
+const branchName = ref('')
+
+function setBranch(id) {
+  selectedBranchId.value = id
+  const branch = branches.value.data.find(b => b.id === id)
+  branchName.value = branch ? branch.title : ''
 }
+
 function closeModalAndResetForm() {
   const modalEl = document.getElementById('create')
   const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl)
   modal.hide()
-  // Reset all form data and edit mode
   title.value = null
   id.value = null
   isEditMode.value = false
-  currentRole.value = null
+  currentBranch.value = null
   Object.keys(errors).forEach(key => {
     delete errors[key]
   })
 }
+
 watchEffect(() => {
-  fetchRoles()
+  fetchBranches()
 })
 
-// Add modal event listeners to reset form when modal opens
-onMounted(() => {
-  const modalEl = document.getElementById('create')
-  if (modalEl) {
-    modalEl.addEventListener('show.bs.modal', (event) => {
-      // Check if this is a new creation (no role data passed)
-      const button = event.relatedTarget
-      if (button && !button.hasAttribute('data-role-id')) {
-        // Reset form for new role creation
-        title.value = null
-        id.value = null
-        isEditMode.value = false
-        currentRole.value = null
-        Object.keys(errors).forEach(key => {
-          delete errors[key]
-        })
-      }
-    })
-  }
-})
-async function fetchRoles() {
+async function fetchBranches() {
   error.value = null
-  isLoadingRoles.value = true
+  isLoadingBranches.value = true
   try {
-    const { data: responseRole } = await useFetch(`/roles?page=${page.value}`, {
+    const { data: responseBranch } = await useFetch(`/branches?page=${page.value}`, {
       baseURL: config.public.apiBase
     })
-    roles.value = responseRole.value
+    branches.value = responseBranch.value
   } catch (e) {
     error.value = e
   } finally {
-    isLoadingRoles.value = false
+    isLoadingBranches.value = false
   }
 }
+
 function goToPage(newPage) {
   page.value = newPage
 }
-async function toggleStatus(role) {
+
+async function toggleStatus(branch) {
   if (isLoadingId.value) return
-  isLoadingId.value = role.id
+  isLoadingId.value = branch.id
   try {
-    const response = await $fetch(`/roles/${role.id}/toggle-status`, {
+    const response = await $fetch(`/branches/${branch.id}/toggle-status`, {
       baseURL: config.public.apiBase,
       method: 'POST',
     })
-    role.status = role.status  === 1  ? 0 : 1
+    branch.status = branch.status === 1 ? 0 : 1
   } catch (error) {
     console.error('خطا در تغییر وضعیت', error)
   } finally {
     isLoadingId.value = null
   }
 }
+
 function validateForm() {
   Object.keys(errors).forEach(key => delete errors[key])
-  if (!title.value || title.value.trim() === '') {
+  if (!title.value) {
     errors[`title`] = `Title is required.`
   }
   return Object.keys(errors).length === 0
 }
+
 async function handleSubmit() {
   if (!validateForm()) return
-  createRole.value = true
+  createBranch.value = true
   const payload = new FormData()
   payload.append(`title`, title.value)
 
-
-
   try {
-    if (isEditMode.value && id) {
-      await $fetch(`/roles/${id.value}`, {
+    if (isEditMode.value && id.value) {
+      await $fetch(`/branches/${id.value}`, {
         method: 'POST',
         body: payload,
         baseURL: config.public.apiBase,
@@ -353,13 +320,12 @@ async function handleSubmit() {
       })
       nuxtApp.$toast({
         title: 'success!',
-        message: 'Role updated successfully.',
+        message: 'Branch updated successfully.',
         type: 'success',
         duration: 3000
       })
-
     } else {
-      await useFetch('/roles', {
+      await useFetch('/branches', {
         method: 'POST',
         body: payload,
         baseURL: config.public.apiBase,
@@ -369,51 +335,52 @@ async function handleSubmit() {
       })
       nuxtApp.$toast({
         title: 'success!',
-        message: 'Role created successfully.',
+        message: 'Branch created successfully.',
         type: 'success',
         duration: 3000
       })
     }
-    createRole.value = false
-    await fetchRoles()
+    createBranch.value = false
+    await fetchBranches()
     closeModalAndResetForm()
-    title.value= null
-
+    title.value = null
   } catch (e) {
     console.error('Error sending data:', e)
   }
 }
+
 function resetData(){
-  title.value= null
-  isEditMode.value = false
-  Object.keys(errors).forEach(key => {
-    delete errors[key]
-  })
-}
-const isEditMode = ref(false)
-const currentRole = ref(null)
-function openModal(role = null) {
-  // Reset form data first
   title.value = null
   id.value = null
   isEditMode.value = false
-  currentRole.value = null
+  currentBranch.value = null
   Object.keys(errors).forEach(key => {
     delete errors[key]
   })
-  
-  if (role) {
-    id.value = role.id
+}
+
+const isEditMode = ref(false)
+const currentBranch = ref(null)
+
+function openModal(branch = null) {
+  if (branch) {
+    id.value = branch.id
     isEditMode.value = true
-    currentRole.value = role
-    title.value = role.title
+    currentBranch.value = branch
+    title.value = branch.title
+  } else {
+    id.value = null
+    isEditMode.value = false
+    currentBranch.value = null
+    title.value = null
   }
 }
-async function confirmDeleteRole() {
-  if (!selectedRoleId.value) return
+
+async function confirmDeleteBranch() {
+  if (!selectedBranchId.value) return
   isDeleting.value = true
   try {
-    const { error } = await useFetch(`/roles/${selectedRoleId.value}`, {
+    const { error } = await useFetch(`/branches/${selectedBranchId.value}`, {
       method: 'DELETE',
       baseURL: config.public.apiBase,
       headers: { Accept: 'application/json' },
@@ -423,25 +390,23 @@ async function confirmDeleteRole() {
     modal.hide()
 
     if (error.value) {
-      alert('Failed to delete role.')
+      alert('Failed to delete branch.')
       console.error(error.value)
       return
     }
     nuxtApp.$toast({
       title: 'success!',
-      message: 'Role moved to trash.',
+      message: 'Branch moved to trash.',
       type: 'success',
       duration: 3000
     })
-    await fetchRoles()
+    await fetchBranches()
   } catch (e) {
     console.error(e)
     alert('An error occurred during deletion.')
   } finally {
     isDeleting.value = false
-    selectedRoleId.value = null
+    selectedBranchId.value = null
   }
 }
-</script>
-
-
+</script> 

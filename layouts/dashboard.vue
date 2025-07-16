@@ -63,6 +63,7 @@ useHead({
     { src: '/dashboard-assets/js/modal.js', defer: true },
     { src: '/dashboard-assets/js/custom.js', defer: true },
     { src: '/dashboard-assets/js/Toasts.js', defer: true },
+
 ]
 })
 </script>
