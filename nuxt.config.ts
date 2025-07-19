@@ -2,6 +2,8 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-05-15',
   devtools: { enabled: true },
+  plugins: [
+  ],
   runtimeConfig: {
     public: {
       apiBase: 'http://localhost:8000/api/v1',

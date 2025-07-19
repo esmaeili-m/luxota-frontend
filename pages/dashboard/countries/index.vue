@@ -45,6 +45,7 @@
                 <th>Abbreviation</th>
                 <th>Phone Code</th>
                 <th>Zone</th>
+                <th>Currency</th>
                 <th>Status</th>
                 <th>Action</th>
               </tr>
@@ -56,6 +57,7 @@
                 <td>{{ country.abb }}</td>
                 <td>{{ country.phone_code || '-' }}</td>
                 <td>{{ country.zone?.name || '-' }}</td>
+                <td>{{ country.currency_id || '-' }}</td>
                 <td>
                     <span
                         class="badge badge-lg rounded-pill cursor-pointer"
@@ -148,7 +150,7 @@
     <div class="modal-dialog modal-dialog-centered modal-xl">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="createCountryLabel">Create Country</h5>
+          <h5 class="modal-title" id="createCountryLabel">{{ isEditMode ? 'Update Country' : 'Create Country' }}</h5>
           <button
               type="button"
               class="btn-close"
@@ -173,7 +175,6 @@
                       :class="{ 'is-invalid': errors['en'] }"
                       v-model="en"
                       placeholder="Enter English name"
-                      required
                   />
                   <div class="invalid-feedback" v-if="errors['en']">
                     {{ errors['en'] }}
@@ -212,16 +213,16 @@
                 </div>
               </div>
               <div class="col-md-6 mb-4">
-                <div class="mb-2">
-                  <label for="zone_id" class="form-label text-muted">Zone</label>
+
+                <div class="mb-2 select-wrapper">
+                  <label for="zone_id" class="form-label text-muted" :class="{ 'is-invalid': errors['zone_id'] }" >Zone</label>
                   <select
-                      class="form-control"
-                      :class="{ 'is-invalid': errors['zone_id'] }"
+                      class="set_select2"
                       v-model="zone_id"
                   >
-                    <option value="">Select Zone</option>
+                    <option value=""  selected >Select Zone</option>
                     <option v-for="zone in zones" :key="zone.id" :value="zone.id">
-                      {{ zone.name }}
+                      {{ zone.title }}
                     </option>
                   </select>
                   <div class="invalid-feedback" v-if="errors['zone_id']">
@@ -245,65 +246,24 @@
                 </div>
               </div>
               <div class="col-md-6 mb-4">
-                <div class="mb-2">
-                  <label for="ar" class="form-label text-muted">Arabic Name</label>
-                  <input
-                      type="text"
-                      class="form-control"
-                      :class="{ 'is-invalid': errors['ar'] }"
-                      v-model="ar"
-                      placeholder="Enter Arabic name"
-                  />
-                  <div class="invalid-feedback" v-if="errors['ar']">
-                    {{ errors['ar'] }}
+                <div class="mb-2 select-wrapper">
+                  <label for="currency_id" class="form-label text-muted" :class="{ 'is-invalid': errors['currency_id'] }">Currency</label>
+                  <select
+                      placeholder ="please select currency"
+                      class="form-control set_select2"
+                      v-model="currency_id"
+                  >
+                    <option value="">Select Currency</option>
+                    <option value="AFN" v-for="country in countries" :key="country.id" :value="country.id">
+                      {{ countries.en }}
+                    </option>
+                  </select>
+                  <div class="invalid-feedback" v-if="errors['currency_id']">
+                    {{ errors['currency_id'] }}
                   </div>
                 </div>
               </div>
-              <div class="col-md-6 mb-4">
-                <div class="mb-2">
-                  <label for="ku" class="form-label text-muted">Kurdish Name</label>
-                  <input
-                      type="text"
-                      class="form-control"
-                      :class="{ 'is-invalid': errors['ku'] }"
-                      v-model="ku"
-                      placeholder="Enter Kurdish name"
-                  />
-                  <div class="invalid-feedback" v-if="errors['ku']">
-                    {{ errors['ku'] }}
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-6 mb-4">
-                <div class="mb-2">
-                  <label for="tr" class="form-label text-muted">Turkish Name</label>
-                  <input
-                      type="text"
-                      class="form-control"
-                      :class="{ 'is-invalid': errors['tr'] }"
-                      v-model="tr"
-                      placeholder="Enter Turkish name"
-                  />
-                  <div class="invalid-feedback" v-if="errors['tr']">
-                    {{ errors['tr'] }}
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-6 mb-4">
-                <div class="mb-2">
-                  <label for="flag" class="form-label text-muted">Flag</label>
-                  <input
-                      type="text"
-                      class="form-control"
-                      :class="{ 'is-invalid': errors['flag'] }"
-                      v-model="flag"
-                      placeholder="Enter flag URL or emoji"
-                  />
-                  <div class="invalid-feedback" v-if="errors['flag']">
-                    {{ errors['flag'] }}
-                  </div>
-                </div>
-              </div>
+
             </div>
             <div class="modal-footer">
               <button type="submit" :disabled="createCountry" class="btn btn-primary" :class="{ 'opacity-50': createCountry }">
@@ -345,11 +305,25 @@
 </template>
 
 <script setup>
-import {ref, watchEffect, reactive } from 'vue'
+import {ref, watchEffect, reactive, onMounted} from 'vue'
 const nuxtApp = useNuxtApp()
 definePageMeta({
   layout: 'dashboard',
 })
+useHead({
+  link: [
+    { rel: 'stylesheet',  href: '/dashboard-assets/css/select2.min.css' },
+  ],
+  script: [
+
+    {
+      src: '/dashboard-assets/js/select22.min.js',
+      type: 'text/javascript',
+      defer:true
+    },
+  ]
+})
+
 const config = useRuntimeConfig()
 const isLoadingModalData = ref(false)
 const isLoadingCountries = ref(false)
@@ -360,13 +334,9 @@ const zones = ref([])
 const en = ref(null)
 const abb = ref(null)
 const phone_code = ref(null)
-const flag = ref(null)
 const zone_id = ref(null)
 const currency_id = ref(null)
 const fa = ref(null)
-const ar = ref(null)
-const ku = ref(null)
-const tr = ref(null)
 const id = ref(null)
 const error = reactive({})
 const isLoadingId = ref(null)
@@ -389,13 +359,9 @@ function closeModalAndResetForm() {
   en.value = null
   abb.value = null
   phone_code.value = null
-  flag.value = null
   zone_id.value = null
   currency_id.value = null
   fa.value = null
-  ar.value = null
-  ku.value = null
-  tr.value = null
   id.value = null
   isEditMode.value = false
   currentCountry.value = null
@@ -416,7 +382,7 @@ async function fetchCountries() {
     const { data: responseCountry } = await useFetch(`/countries?page=${page.value}`, {
       baseURL: config.public.apiBase
     })
-    countries.value = responseCountry.value
+    countries.value = responseCountry.value.data
   } catch (e) {
     error.value = e
   } finally {
@@ -429,7 +395,7 @@ async function fetchZones() {
     const { data: responseZones } = await useFetch('/zones/all', {
       baseURL: config.public.apiBase
     })
-    zones.value = responseZones.value || []
+    zones.value = responseZones.value.data || []
   } catch (e) {
     console.error('Error fetching zones:', e)
   }
@@ -459,6 +425,16 @@ function validateForm() {
   Object.keys(errors).forEach(key => delete errors[key])
   if (!en.value) {
     errors['en'] = 'English name is required.'
+  }if (!fa.value) {
+    errors['fa'] = 'Persian name is required.'
+  }if (!abb.value) {
+    errors['abb'] = 'Abb is required.'
+  }if (!currency_id.value) {
+    errors['currency_id'] = 'Currency name is required.'
+  }if (!zone_id.value) {
+    errors['zone_id'] = 'Zone is required.'
+  }if (!phone_code.value) {
+    errors['phone_code'] = 'Phone code is required.'
   }
   return Object.keys(errors).length === 0
 }
@@ -470,13 +446,9 @@ async function handleSubmit() {
   payload.append('en', en.value)
   payload.append('abb', abb.value || '')
   payload.append('phone_code', phone_code.value || '')
-  payload.append('flag', flag.value || '')
   payload.append('zone_id', zone_id.value || '')
   payload.append('currency_id', currency_id.value || '')
   payload.append('fa', fa.value || '')
-  payload.append('ar', ar.value || '')
-  payload.append('ku', ku.value || '')
-  payload.append('tr', tr.value || '')
 
   try {
     if (isEditMode.value && id.value) {
@@ -523,13 +495,9 @@ function resetData(){
   en.value = null
   abb.value = null
   phone_code.value = null
-  flag.value = null
   zone_id.value = null
   currency_id.value = null
   fa.value = null
-  ar.value = null
-  ku.value = null
-  tr.value = null
   id.value = null
   isEditMode.value = false
   currentCountry.value = null
@@ -549,13 +517,9 @@ function openModal(country = null) {
     en.value = country.en
     abb.value = country.abb
     phone_code.value = country.phone_code
-    flag.value = country.flag
     zone_id.value = country.zone_id
     currency_id.value = country.currency_id
     fa.value = country.fa
-    ar.value = country.ar
-    ku.value = country.ku
-    tr.value = country.tr
   } else {
     id.value = null
     isEditMode.value = false
@@ -563,13 +527,9 @@ function openModal(country = null) {
     en.value = null
     abb.value = null
     phone_code.value = null
-    flag.value = null
     zone_id.value = null
     currency_id.value = null
     fa.value = null
-    ar.value = null
-    ku.value = null
-    tr.value = null
   }
 }
 
@@ -606,4 +566,34 @@ async function confirmDeleteCountry() {
     selectedCountryId.value = null
   }
 }
+
+async function fetchData() {
+
+}
+onMounted(async () => {
+
+  await fetchZones()
+  await fetchCountries()
+  await nextTick()
+  initSelect2()
+
+})
+
+
+function initSelect2() {
+  $('.set_select2').each(function () {
+    const $select = $(this);
+    if (!$select.hasClass('select2-hidden-accessible')) {
+      $select.select2();
+      const $parent = $select.closest('.select-wrapper')
+      const placeholderText = $select.find('option').first().text().trim()
+      $select.select2({
+        placeholder: placeholderText || 'Select',
+        allowClear: true,
+        dropdownParent: $parent.length ? $parent : $('body') // Fallback
+      })
+    }
+  });
+}
+
 </script> 

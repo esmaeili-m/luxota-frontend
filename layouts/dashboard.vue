@@ -30,6 +30,7 @@ useHead({
   link: [
     { rel: 'icon', type: 'image/x-icon', href: '/dashboard-assets/images/brand-logos/favicon.ico' },
     { rel: 'stylesheet', href: '/dashboard-assets/libs/bootstrap/css/bootstrap.min.css' },
+
     { rel: 'stylesheet', href: '/dashboard-assets/css/styles.min.css' },
     { rel: 'stylesheet', href: '/dashboard-assets/css/icons.css' },
     { rel: 'stylesheet', href: '/dashboard-assets/css/custom.css' },
@@ -44,6 +45,10 @@ useHead({
   script: [
     { src: '/dashboard-assets/libs/choices.js/public/assets/scripts/choices.min.js' },
     { src: '/dashboard-assets/js/main.js' },
+    {
+      src: '/dashboard-assets/js/jquery-3.6.1.min.js',
+      type: 'text/javascript'
+    },
     { src: '/dashboard-assets/libs/@popperjs/core/umd/popper.min.js', defer: true },
     { src: '/dashboard-assets/libs/bootstrap/js/bootstrap.bundle.min.js', defer: true },
     { src: '/dashboard-assets/js/defaultmenu.min.js', defer: true },

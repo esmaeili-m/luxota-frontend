@@ -13,7 +13,7 @@
       </nav>
     </div>
   </div>
-  
+
   <div class="row">
     <div class="col-xl-12">
       <div class="card custom-card">
@@ -39,100 +39,100 @@
           <div v-else class="table-responsive">
             <table class="table text-nowrap">
               <thead class="table-warning">
-                <tr>
-                  <th class="col-width-100">#</th>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Phone</th>
-                  <th>Role</th>
-                  <th>Deleted At</th>
-                  <th>Action</th>
-                </tr>
+              <tr>
+                <th class="col-width-100">#</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Role</th>
+                <th>Deleted At</th>
+                <th>Action</th>
+              </tr>
               </thead>
               <tbody>
-                <tr v-for="(user, index) in users?.data" :key="user.id">
-                  <td>{{ (page - 1) * perPage + index + 1 }}</td>
-                  <td>
-                    <div class="d-flex align-items-center">
-                      <div class="avatar avatar-sm me-2">
-                        <img v-if="user.avatar" :src="user.avatar" class="rounded-circle" alt="Avatar">
-                        <div v-else class="avatar-initials rounded-circle bg-secondary text-white">
-                          {{ user.name.charAt(0).toUpperCase() }}
-                        </div>
-                      </div>
-                      <div>
-                        <div class="fw-semibold">{{ user.name }}</div>
-                        <small class="text-muted">{{ user.rank?.title }}</small>
+              <tr v-for="(user, index) in users?.data" :key="user.id">
+                <td>{{ (page - 1) * perPage + index + 1 }}</td>
+                <td>
+                  <div class="d-flex align-items-center">
+                    <div class="avatar avatar-sm me-2">
+                      <img v-if="user.avatar" :src="user.avatar" class="rounded-circle" alt="Avatar">
+                      <div v-else class="avatar-initials rounded-circle bg-secondary text-white">
+                        {{ user.name.charAt(0).toUpperCase() }}
                       </div>
                     </div>
-                  </td>
-                  <td>{{ user.email }}</td>
-                  <td>{{ user.phone }}</td>
-                  <td>
-                    <span class="badge bg-info-transparent">{{ user.role?.title }}</span>
-                  </td>
-                  <td>
-                    <span class="text-muted">{{ formatDate(user.deleted_at) }}</span>
-                  </td>
-                  <td>
-                    <div class="btn-group my-1">
-                      <button type="button" class="btn btn-sm btn-light">...</button>
-                      <button type="button"
-                        class="btn btn-light btn-sm dropdown-toggle dropdown-toggle-split me-2"
-                        data-bs-toggle="dropdown" aria-expanded="false">
-                        <span class="visually-hidden">Toggle Dropdown</span>
-                      </button>
-                      <ul class="dropdown-menu">
-                        <li>
-                          <a @click="restoreUser(user.id)" 
-                             class="dropdown-item" 
-                             :class="{ 'disabled': isLoadingId === user.id }" 
-                             :style="{ pointerEvents: isLoadingId === user.id ? 'none' : 'auto' }">
-                            Restore
-                          </a>
-                        </li>
-                        <li>
-                          <hr class="dropdown-divider">
-                        </li>
-                        <li>
-                          <a data-bs-toggle="modal" 
-                             data-bs-effect="effect-flip-vertical" 
-                             data-bs-target="#forceDelete" 
-                             @click="setUser(user.id, user.name)" 
-                             class="dropdown-item modal-effect" 
-                             href="#forceDelete" 
-                             :class="{ 'disabled': isLoadingId === user.id }" 
-                             :style="{ pointerEvents: isLoadingId === user.id ? 'none' : 'auto' }">
-                            Force Delete
-                          </a>
-                        </li>
-                      </ul>
+                    <div>
+                      <div class="fw-semibold">{{ user.name }}</div>
+                      <small class="text-muted">{{ user.rank?.title }}</small>
                     </div>
-                  </td>
-                </tr>
+                  </div>
+                </td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.phone }}</td>
+                <td>
+                  <span class="badge bg-info-transparent">{{ user.role?.title }}</span>
+                </td>
+                <td>
+                  <span class="text-muted">{{ formatDate(user.deleted_at) }}</span>
+                </td>
+                <td>
+                  <div class="btn-group my-1">
+                    <button type="button" class="btn btn-sm btn-light">...</button>
+                    <button type="button"
+                            class="btn btn-light btn-sm dropdown-toggle dropdown-toggle-split me-2"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                      <span class="visually-hidden">Toggle Dropdown</span>
+                    </button>
+                    <ul class="dropdown-menu">
+                      <li>
+                        <a @click="restoreUser(user.id)"
+                           class="dropdown-item"
+                           :class="{ 'disabled': isLoadingId === user.id }"
+                           :style="{ pointerEvents: isLoadingId === user.id ? 'none' : 'auto' }">
+                          Restore
+                        </a>
+                      </li>
+                      <li>
+                        <hr class="dropdown-divider">
+                      </li>
+                      <li>
+                        <a data-bs-toggle="modal"
+                           data-bs-effect="effect-flip-vertical"
+                           data-bs-target="#forceDelete"
+                           @click="setUser(user.id, user.name)"
+                           class="dropdown-item modal-effect"
+                           href="#forceDelete"
+                           :class="{ 'disabled': isLoadingId === user.id }"
+                           :style="{ pointerEvents: isLoadingId === user.id ? 'none' : 'auto' }">
+                          Force Delete
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
+                </td>
+              </tr>
               </tbody>
             </table>
-            
+
             <nav aria-label="Page navigation" class="pagination-style-4 mt-2">
               <ul class="pagination mb-0 flex-wrap">
                 <li
-                  class="page-item"
-                  :class="{ disabled: users?.meta?.current_page === 1 }"
+                    class="page-item"
+                    :class="{ disabled: users?.meta?.current_page === 1 }"
                 >
                   <a
-                    class="page-link"
-                    href="#"
-                    @click.prevent="goToPage(users.meta.current_page - 1)"
+                      class="page-link"
+                      href="#"
+                      @click.prevent="goToPage(users.meta.current_page - 1)"
                   >
                     Prev
                   </a>
                 </li>
 
                 <li
-                  v-for="pageNumber in users?.meta?.last_page"
-                  :key="pageNumber"
-                  class="page-item"
-                  :class="{ active: pageNumber === users?.meta?.current_page }"
+                    v-for="pageNumber in users?.meta?.last_page"
+                    :key="pageNumber"
+                    class="page-item"
+                    :class="{ active: pageNumber === users?.meta?.current_page }"
                 >
                   <a class="page-link" href="#" @click.prevent="goToPage(pageNumber)">
                     {{ pageNumber }}
@@ -140,13 +140,13 @@
                 </li>
 
                 <li
-                  class="page-item"
-                  :class="{ disabled: users?.meta?.current_page === users?.meta?.last_page }"
+                    class="page-item"
+                    :class="{ disabled: users?.meta?.current_page === users?.meta?.last_page }"
                 >
                   <a
-                    class="page-link text-primary"
-                    href="#"
-                    @click.prevent="goToPage(users.meta.current_page + 1)"
+                      class="page-link text-primary"
+                      href="#"
+                      @click.prevent="goToPage(users.meta.current_page + 1)"
                   >
                     Next
                   </a>
@@ -180,11 +180,11 @@
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" :disabled="isForceDeleting">Cancel</button>
           <button
-            :disabled="isForceDeleting"
-            type="button"
-            class="btn btn-danger"
-            :class="{ 'opacity-50': isForceDeleting }"
-            @click="confirmForceDeleteUser"
+              :disabled="isForceDeleting"
+              type="button"
+              class="btn btn-danger"
+              :class="{ 'opacity-50': isForceDeleting }"
+              @click="confirmForceDeleteUser"
           >
             {{ isForceDeleting ? 'Loading...' : 'Yes, Permanently Delete' }}
           </button>
@@ -254,20 +254,20 @@ function goToPage(newPage) {
 async function restoreUser(userId) {
   if (isLoadingId.value) return
   isLoadingId.value = userId
-  
+
   try {
     await $fetch(`/users/${userId}/restore`, {
       baseURL: config.public.apiBase,
       method: 'POST',
     })
-    
+
     nuxtApp.$toast({
       title: 'Success!',
       message: 'User restored successfully.',
       type: 'success',
       duration: 3000
     })
-    
+
     await fetchUsers()
   } catch (error) {
     console.error('Error restoring user:', error)
@@ -284,7 +284,7 @@ async function restoreUser(userId) {
 
 async function confirmForceDeleteUser() {
   if (!selectedUserId.value) return
-  
+
   isForceDeleting.value = true
   try {
     await $fetch(`/users/force-delete/${selectedUserId.value}`, {
@@ -292,7 +292,7 @@ async function confirmForceDeleteUser() {
       baseURL: config.public.apiBase,
       headers: { Accept: 'application/json' },
     })
-    
+
     const modalEl = document.getElementById('forceDelete')
     const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl)
     modal.hide()
@@ -303,7 +303,7 @@ async function confirmForceDeleteUser() {
       type: 'success',
       duration: 3000
     })
-    
+
     await fetchUsers()
   } catch (e) {
     console.error(e)
@@ -343,4 +343,4 @@ watchEffect(() => {
 .cursor-pointer {
   cursor: pointer;
 }
-</style> 
+</style>
