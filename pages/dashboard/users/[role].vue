@@ -1,11 +1,11 @@
 <!-- pages/dashboard/users/index.vue -->
 <template>
   <div class="d-md-flex d-block align-items-center justify-content-between my-4 page-header-breadcrumb">
-    <h1 class="page-title fw-semibold fs-18 mb-0">{{$route.params.role}} Users</h1>
+    <h1 class="page-title fw-semibold fs-18 mb-0">{{ $route.params.role }} Users</h1>
     <div class="ms-md-1 ms-0">
       <nav>
         <ol class="breadcrumb mb-0">
-          <li class="breadcrumb-item active" aria-current="page">{{$route.params.role}} Users</li>
+          <li class="breadcrumb-item active" aria-current="page">{{ $route.params.role }} Users</li>
         </ol>
       </nav>
     </div>
@@ -15,14 +15,14 @@
       <div class="card custom-card">
         <div class="card-header justify-content-between">
           <div class="card-title">
-            {{$route.params.role}} Users
+            {{ $route.params.role }} Users
           </div>
           <div class="prism-toggle">
             <button
                 class="btn btn-sm btn-success-light mx-1 modal-effect"
                 data-bs-target="#create" data-bs-effect="effect-flip-vertical" data-bs-toggle="modal" href="#create"
                 @click="openModal()">
-              Create {{$route.params.role}} User<i class="ri-add-line ms-2 d-inline-block align-middle"></i>
+              Create {{ $route.params.role }} User<i class="ri-add-line ms-2 d-inline-block align-middle"></i>
             </button>
             <NuxtLink to="/dashboard/users/trash/{{$route.params.role}}" class="btn btn-sm btn-warning-light">Trash<i
                 class="ri-delete-bin-line ms-2 d-inline-block align-middle"></i></NuxtLink>
@@ -52,9 +52,12 @@
               />
             </div>
 
-            <div class="col-md-2">
+            <div class="col-md-2 select-wrapper">
 
-              <select class="form-select" v-model="searchQuery.status" @change="debounceSearch">
+              <select class="choices-select"
+                      name="searchQuertStatus"
+                      ref="searchQuertStatus"
+                      v-model="searchQuery.status" @change="debounceSearch">
                 <option value="">All Status</option>
                 <option value="1">Active</option>
                 <option value="0">Inactive</option>
@@ -71,13 +74,13 @@
             </div>
           </div>
 
-          <div v-if="isLoadingUsers" class="text-center my-3">
+          <div v-if="loading" class="text-center my-3">
             <div class="spinner-border text-primary" role="status">
               <span class="visually-hidden">Loading</span>
             </div>
           </div>
           <div v-else-if="!users?.data || users.data.length === 0">
-            <EmptyState />
+            <EmptyState/>
           </div>
           <div v-else class="table-responsive">
             <table class="table text-nowrap">
@@ -87,9 +90,6 @@
                 <th>Name</th>
                 <th>Email</th>
                 <th>Phone</th>
-                <th>Role</th>
-                <th>Zone</th>
-                <th>City</th>
                 <th>Status</th>
                 <th>Action</th>
               </tr>
@@ -99,11 +99,11 @@
                 <td>{{ (page - 1) * perPage + index + 1 }}</td>
                 <td>
                   <div class="d-flex align-items-center">
-                    <div class="avatar avatar-sm me-2">
-                      <img v-if="user.avatar" :src="user.avatar" class="rounded-circle" alt="Avatar">
-                      <div v-else class="avatar-initials rounded-circle bg-primary text-white">
-                        {{ user.name.charAt(0).toUpperCase() }}
-                      </div>
+                    <div class="avatar avatar-md me-2">
+                      <img  :src="user.avatar ? `${config.public.fileBase}/${user.avatar}` : '/dashboard-assets/images/authentication/user.png'"
+                           class="rounded"
+                           alt="Avatar">
+
                     </div>
                     <div>
                       <div class="fw-semibold">{{ user.name }}</div>
@@ -113,11 +113,7 @@
                 </td>
                 <td>{{ user.email }}</td>
                 <td>{{ user.phone }}</td>
-                <td>
-                  <span class="badge bg-info-transparent">{{ user.role?.title }}</span>
-                </td>
-                <td>{{ user.zone?.name }}</td>
-                <td>{{ user.city?.name }}</td>
+
                 <td>
                     <span
                         class="badge badge-lg rounded-pill cursor-pointer"
@@ -146,58 +142,62 @@
                     </button>
                     <ul class="dropdown-menu">
                       <li><a @click="openModal(user)"
-                             data-bs-target="#create" data-bs-effect="effect-flip-vertical" data-bs-toggle="modal" href="#create" class="dropdown-item modal-effect" :class="{ 'disabled': isLoadingId === user.id }" :style="{ pointerEvents: isLoadingId === user.id ? 'none' : 'auto' }" :data-user-id="user.id">Update</a></li>
+                             data-bs-target="#create" data-bs-effect="effect-flip-vertical" data-bs-toggle="modal"
+                             href="#create"
+                             class="dropdown-item modal-effect" :class="{ 'disabled': isLoadingId === user.id }"
+                             :style="{ pointerEvents: isLoadingId === user.id ? 'none' : 'auto' }"
+                             :data-user-id="user.id">Update</a></li>
                       <li>
                         <hr class="dropdown-divider">
                       </li>
-                      <li v-if="![1].includes(user.id)"><a data-bs-toggle="modal" data-bs-effect="effect-flip-vertical" data-bs-target="#delete" @click="setUser(user.id)" class="dropdown-item modal-effect" href="#delete" :class="{ 'disabled': isLoadingId === user.id }" :style="{ pointerEvents: isLoadingId === user.id ? 'none' : 'auto' }">Delete</a></li>
+                      <li><a data-bs-toggle="modal" data-bs-effect="effect-flip-vertical" data-bs-target="#delete"
+                             @click="setUser(user.id)" class="dropdown-item modal-effect" href="#delete"
+                             :class="{ 'disabled': isLoadingId === user.id }"
+                             :style="{ pointerEvents: isLoadingId === user.id ? 'none' : 'auto' }">Delete</a></li>
                     </ul>
                   </div>
                 </td>
               </tr>
               </tbody>
             </table>
-            <nav aria-label="Page navigation" class="pagination-style-4 mt-2">
-              <ul class="pagination mb-0 flex-wrap">
-                <li
-                    class="page-item"
-                    :class="{ disabled: users?.meta?.current_page === 1 }"
-                >
-                  <a
-                      class="page-link"
-                      href="#"
-                      @click.prevent="goToPage(users.meta.current_page - 1)"
-                  >
-                    Prev
-                  </a>
-                </li>
-
-                <li
-                    v-for="pageNumber in users?.meta?.last_page"
-                    :key="pageNumber"
-                    class="page-item"
-                    :class="{ active: pageNumber === users?.meta?.current_page }"
-                >
-                  <a class="page-link" href="#" @click.prevent="goToPage(pageNumber)">
-                    {{ pageNumber }}
-                  </a>
-                </li>
-
-                <li
-                    class="page-item"
-                    :class="{ disabled: users?.meta?.current_page === users?.meta?.last_page }"
-                >
-                  <a
-                      class="page-link text-primary"
-                      href="#"
-                      @click.prevent="goToPage(users.meta.current_page + 1)"
-                  >
-                    Next
-                  </a>
-                </li>
-              </ul>
-            </nav>
           </div>
+          <nav aria-label="Page navigation" class="pagination-style-4 mt-2" v-if="users?.meta?.last_page > 1">
+            <ul class="pagination mb-0 flex-wrap">
+
+              <li class="page-item" :class="{ disabled: users.meta?.current_page === 1 }">
+                <a class="page-link" href="#" @click.prevent="goToPage(users.meta?.current_page - 1)">
+                  Prev
+                </a>
+              </li>
+
+              <li
+                  v-for="pageNumber in getDisplayedPages"
+                  :key="pageNumber"
+                  class="page-item"
+                  :class="{ active: pageNumber === users.meta?.current_page, disabled: pageNumber === '...' }"
+              >
+                <a
+                    v-if="pageNumber !== '...'"
+                    class="page-link"
+                    href="#"
+                    @click.prevent="goToPage(pageNumber)"
+                >
+                  {{ pageNumber }}
+                </a>
+                <span v-else class="page-link">...</span>
+              </li>
+
+              <li
+                  class="page-item"
+                  :class="{ disabled: users.meta?.current_page === users.meta?.last_page }"
+              >
+                <a class="page-link" href="#" @click.prevent="goToPage(users.meta?.current_page + 1)">
+                  Next
+                </a>
+              </li>
+            </ul>
+          </nav>
+
         </div>
       </div>
     </div>
@@ -214,7 +214,8 @@
     <div class="modal-dialog modal-dialog-centered modal-xl">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="createUserLabel">{{ isEditMode ? 'Update User' : `Create `+ $route.params.role +` User` }}</h5>
+          <h5 class="modal-title" id="createUserLabel">
+            {{ isEditMode ? 'Update User' : `Create ` + $route.params.role + ` User` }}</h5>
           <button
               type="button"
               class="btn-close"
@@ -225,13 +226,13 @@
 
         <div class="modal-body text-start">
           <!-- Loader -->
-          <div v-if="isLoadingModalData" class="text-center my-3">
+          <div v-show="isLoadingModalData" class="text-center my-3">
             <div class="spinner-border text-primary" role="status">
               <span class="visually-hidden">Loading...</span>
             </div>
           </div>
 
-          <form v-else @submit.prevent="handleSubmit">
+          <form v-show="!isLoadingModalData" @submit.prevent="handleSubmit">
             <div class="row">
               <!-- Basic Information -->
               <div v-if="createForm.name" class="col-md-4 mb-3">
@@ -277,30 +278,39 @@
               </div>
               <div v-show="createForm.whatsapp" class="col-md-4 mb-3">
                 <label class="form-label text-muted">WhatsApp Number</label>
-                <div class="input-group">
-                  <div class="input-group-text select-wrapper" style="padding: 0; border: none;width: 150px">
+                <div class="input-group" :class="{ 'is-invalid': errors.whatsapp_country_code }">
+                  <div class="input-group-text select-wrapper" style="padding: 0; border: none;">
                     <select
-                      class="set_select2 phone-code-select"
-                      v-model="form.country_code"
-                      style="border: none; background: transparent; width: 220px; border-bottom-right-radius: 0; border-top-right-radius: 0;"
-                  >
-                    <option value="">Code</option>
-                    <option v-for="country in countries" :key="country.id" :value="country.phone_code">
-                      {{ country.phone_code }}
-                    </option>
-                  </select>
+                        name="whatsapp_country_code"
+                        ref="whatsappCountryCodeSelect"
+                        class="choices-select phone-code-select w-25"
+                        v-model="form.whatsapp_country_code"
+                        style="border: none; background: transparent; width: 120px; border-bottom-right-radius: 0; border-top-right-radius: 0;"
+                    >
+                      <option value="">Code</option>
+                      <option v-for="country in countries" :key="country?.id" :value="country?.phone_code">
+                        {{ country.phone_code }}
+                      </option>
+                    </select>
                   </div>
                   <input
                       type="text"
                       class="form-control"
+                      :class="{ 'is-invalid': errors.whatsapp_number }"
                       v-model="form.whatsapp_number"
                       placeholder="Enter WhatsApp number"
                   />
                 </div>
+                <div class="invalid-feedback" v-if="errors.whatsapp_number">
+                  {{ errors.whatsapp_number }}
+                </div>
+                <div class="invalid-feedback" v-if="errors.whatsapp_country_code">
+                  {{ errors.whatsapp_country_code }}
+                </div>
               </div>
 
 
-              <div v-if="createForm.password" class="col-md-4 mb-3" >
+              <div v-if="createForm.password" class="col-md-4 mb-3">
                 <label class="form-label text-muted">Password {{ isEditMode ? '' : '*' }}</label>
                 <input
                     type="password"
@@ -315,20 +325,23 @@
               </div>
               <div v-show="createForm.zone" class="col-md-4 mb-3 select-wrapper">
                 <label class="form-label text-muted " :class="{ 'is-invalid': errors.zone_id }">Zone *</label>
-                <select
-                    class="set_select2 "
-
-                    v-model="form.zone_id"
-                    @change="onZoneChange"
-                >
-                  <option value="">Select Zone</option>
-                  <option v-for="zone in zones" :key="zone.id" :value="zone.id">
-                    {{ zone.title }}
-                  </option>
-                </select>
+                <div class="card-body">
+                  <select
+                      name="zone_id"
+                      v-model="form.zone_id"
+                      placeholder="Select Zone"
+                      class="form-control choices-select"
+                  >
+                    <option value="" disabled selected hidden>Please select</option>
+                    <option v-for="zone in zones" :key="zone.id" :value="zone.id">
+                      {{ zone.title }}
+                    </option>
+                  </select>
+                </div>
                 <div class="invalid-feedback" v-if="errors.zone_id">
                   {{ errors.zone_id }}
                 </div>
+
               </div>
               <div v-if="createForm.description" class="col-md-12 mb-3">
                 <label class="form-label text-muted">Description</label>
@@ -350,7 +363,7 @@
                 />
               </div>
 
-              <div v-if="createForm.luxota_website" class="col-md-4 mb-3" >
+              <div v-if="createForm.luxota_website" class="col-md-4 mb-3">
                 <label class="form-label text-muted">Luxota Website</label>
                 <input
                     type="url"
@@ -359,69 +372,6 @@
                     placeholder="Enter Luxota website URL"
                 />
               </div>
-              <div v-if="createForm.website" class="col-md-4 mb-3 " >
-                <label class="form-label text-muted">Websites</label>
-                <div class="row">
-                  <div class="col-md-10">
-                    <input
-                        type="url"
-                        class="form-control"
-                        v-model="website"
-                        placeholder="Enter Luxota website URL"
-                    />
-                  </div>
-                  <div class="col-md-2 ">
-                    <button @click="addWebsite" type="button" class="btn btn-primary btn-wave waves-effect waves-light">Add</button>
-                  </div>
-                </div>
-                <div class="d-flex gap-1">
-                    <button v-for = "(site , index) in form.websites" :key="index"
-                            type="button" class="btn btn-secondary btn-sm shadow-sm btn-wave waves-effect waves-light mt-1">{{site}} <i class="bx bx-trash ms-3"
-                                                                                                                           @click="removeWebsite(index)"></i></button>
-                </div>
-
-              </div>
-
-              <div class="col-md-4 mb-3">
-                <label class="form-label text-muted">Phone Number</label>
-                <div class="input-group">
-                  <div class="input-group-text" style="padding: 0; border: none;">
-
-                  </div>
-                  <input
-                      type="text"
-                      class="form-control"
-                      v-model="form.phone"
-                      placeholder="Enter phone number"
-                  />
-                </div>
-              </div>
-              <div class="col-md-4 mb-3">
-                <label class="form-label text-muted">Phone Number</label>
-                <div class="input-group">
-                  <div class="input-group-text" style="padding: 0; border: none;">
-                    <select
-                        class="set_select2"
-                        v-model="form.country_code"
-                        style="border: none; background: transparent; min-width: 120px;"
-                    >
-                      <option value="">Code</option>
-                      <option v-for="country in countries" :key="country.id" :value="country.phone_code">
-                        {{ country.phone_code }}
-                      </option>
-                    </select>
-                  </div>
-                  <input
-                      type="text"
-                      class="form-control"
-                      v-model="form.phone"
-                      placeholder="Enter phone number"
-                  />
-                </div>
-              </div>
-
-
-
 
 
               <!-- Location Information -->
@@ -429,24 +379,49 @@
               <div v-show="createForm.city" class="col-md-4 mb-3 select-wrapper">
                 <label class="form-label text-muted" :class="{ 'is-invalid': errors.city_id }">City *</label>
                 <select
+                    name="city"
+                    ref="citySelect"
+                    id="city-select"
                     class="set_select2 "
-
                     v-model="form.city_id"
                 >
-                  <option value="">Select City</option>
-                  <option v-for="city in cities" :key="city.id" :value="city.id">
-                    {{ city.name }}
-                  </option>
                 </select>
+
                 <div class="invalid-feedback" v-if="errors.city_id">
                   {{ errors.city_id }}
                 </div>
               </div>
+              <div v-if="createForm.website" class="col-md-4 mb-3 ">
+                <label class="form-label text-muted">Websites</label>
+                <div class="row gx-3">
+                  <div class="col-md-10">
+                    <input
+                        type="url"
+                        class="form-control"
+                        v-model="website"
+                        placeholder="Enter website URL"
+                    />
+                  </div>
+                  <div class="col-md-2 ">
+                    <button @click="addWebsite" type="button" class="btn btn-primary btn-wave waves-effect waves-light">
+                      Add
+                    </button>
+                  </div>
+                </div>
+                <div class="d-flex gap-1 flex-wrap">
+                  <button v-for="(site , index) in form.websites" :key="index"
+                          type="button"
+                          class="btn btn-secondary btn-sm shadow-sm btn-wave waves-effect waves-light mt-1">{{ site }}
+                    <i class="bx bx-trash ms-3"
+                       @click="removeWebsite(index)"></i></button>
+                </div>
 
-              <div class="col-md-4 mb-3 select-wrapper">
+              </div>
+              <div v-show="createForm.branch" class="col-md-4 mb-3 select-wrapper">
                 <label class="form-label text-muted" :class="{ 'is-invalid': errors.branch_id }">Branch *</label>
                 <select
-                    class="set_select2 "
+                    class="choices-select "
+                    name="branch_id"
 
                     v-model="form.branch_id"
                 >
@@ -461,11 +436,11 @@
               </div>
 
               <!-- Rank and Referrer -->
-              <div class="col-md-4 mb-3 select-wrapper" >
+              <div v-show="createForm.rank" class="col-md-4 mb-3 select-wrapper">
                 <label class="form-label text-muted" :class="{ 'is-invalid': errors.rank_id }">Rank *</label>
                 <select
-                    class="set_select2"
-
+                    class="choices-select"
+                    name="rank_id"
                     v-model="form.rank_id"
                 >
                   <option value="">Select Rank</option>
@@ -478,24 +453,25 @@
                 </div>
               </div>
 
-              <div class="col-md-4 mb-3 select-wrapper" >
+              <div v-show="createForm.referrer" class="col-md-4 mb-3 select-wrapper">
                 <label class="form-label text-muted" :class="{ 'is-invalid': errors.referrer_id }">Referrer *</label>
                 <select
-                    class="set_select2"
+                    class="choices-select"
+                    name="referrer_id"
 
                     v-model="form.referrer_id"
                     data-role="referrer"
                 >
                   <option value="">Select Referrer</option>
-                  <option v-for="user in referrers" :key="user.id" :value="user.id">
-                    {{ user.name }} ({{ user.email }})
+                  <option v-for="referrer in referrers" :key="referrer.id" :value="referrer.id">
+                    {{ referrer.title }}
                   </option>
                 </select>
                 <div class="invalid-feedback" v-if="errors.referrer_id">
                   {{ errors.referrer_id }}
                 </div>
               </div>
-              <div class="col-md-4 mb-3">
+              <div v-show="createForm.parent" class="col-md-4 mb-3">
                 <label class="form-label text-muted">Parent User</label>
                 <select class="form-select" v-model="form.parent_id">
                   <option value="">Select Parent User</option>
@@ -504,7 +480,7 @@
                   </option>
                 </select>
               </div>
-              <div v-if="createForm.avatar" class="col-md-4">
+              <div class="col-md-4">
                 <div class="mb-3">
                   <label for="avatar" class="form-label">Image</label>
                   <input
@@ -519,17 +495,19 @@
                     {{ errors.avatar }}
                   </div>
                   <div v-if="imagePreview" class="mt-3 text-center">
-                    <img :src="imagePreview" alt="Preview" class="img-thumbnail rounded" style="max-width: 300px;" />
+                    <img :src="imagePreview" alt="Preview" class="img-thumbnail rounded" style="max-width: 300px;"/>
                   </div>
                 </div>
               </div>
             </div>
 
             <div class="modal-footer">
-              <button type="submit" :disabled="createUser" class="btn btn-primary" :class="{ 'opacity-50': createUser }">
-                {{ createUser ? 'Loading...' : (isEditMode ? 'Update User' : 'Create User') }}
+              <button type="submit" :disabled="createNewUser" class="btn btn-primary"
+                      :class="{ 'opacity-50': createNewUser }">
+                {{ createNewUser ? 'Loading...' : (isEditMode ? 'Update User' : 'Create User') }}
               </button>
-              <button type="button" class="btn btn-light" data-bs-dismiss="modal" :disabled="createUser">Close</button>
+              <button type="button" class="btn btn-light" data-bs-dismiss="modal" :disabled="createNewUser">Close
+              </button>
             </div>
           </form>
         </div>
@@ -538,7 +516,8 @@
   </div>
 
   <!-- Delete Modal -->
-  <div class="modal fade" id="delete" tabindex="-1" aria-labelledby="delete" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal fade" id="delete" tabindex="-1" aria-labelledby="delete" aria-hidden="true"
+       data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -569,22 +548,25 @@
 </template>
 <style scoped>
 .select2-container.phone-code-select {
-  width: 220px !important;
+  width: 120px !important;
 }
 
 </style>
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import {ref, reactive, onMounted} from 'vue'
+import {useRoute} from 'vue-router'
+
 const nuxtApp = useNuxtApp()
 const route = useRoute()
-const role = route.params.role
+const router = useRouter()
+//
+
 definePageMeta({
   layout: 'dashboard',
 })
 useHead({
   link: [
-    { rel: 'stylesheet',  href: '/dashboard-assets/css/select2.min.css' },
+    {rel: 'stylesheet', href: '/dashboard-assets/css/select2.min.css'},
   ],
   script: [
     {
@@ -592,30 +574,28 @@ useHead({
       type: 'text/javascript'
     },
     {
-      src: '/dashboard-assets/js/select22.min.js',
+      src: '/dashboard-assets/js/choices.min.js',
       type: 'text/javascript'
     },
-    // {
-    //   src: '/dashboard-assets/js/select2.js',
-    //   type: 'text/javascript'
-    // }
   ]
 })
 const config = useRuntimeConfig()
 const isLoadingModalData = ref(false)
 const isLoadingUsers = ref(false)
-const page = ref(1)
-const perPage = ref(15)
-const users = ref(null)
+
+const role = reactive({
+  title: '',
+  id: null,
+})
 const error = reactive({})
 const isLoadingId = ref(null)
 const errors = reactive({})
 const selectedUserId = ref(null)
 const isDeleting = ref(false)
-const createUser = ref(false)
+const createNewUser = ref(false)
 const isEditMode = ref(false)
 const currentUser = ref(null)
-
+const userName = ref('')
 const form = reactive({
   name: '',
   email: '',
@@ -643,7 +623,6 @@ const searchQuery = reactive({
   status: '',
   role_id: '',
 })
-const roles = ref([])
 const zones = ref([])
 const cities = ref([])
 const ranks = ref([])
@@ -652,11 +631,16 @@ const referrers = ref([])
 const countries = ref([])
 const imagePreview = ref(null)
 let searchTimeout
-const userName = computed(() => {
-  const user = users.value?.data?.find(u => u.id === selectedUserId.value)
-  return user ? user.name : ''
-})
 const website = ref(null)
+const isDropdownDataLoaded = ref(false)
+const {roles, loadingRole, errorRole, getRoles} = useRoles();
+const {users, user, loading, errorUser, getUserRole, getUserById, createUser, updateUser, page, perPage, setPage,searchUsers} = useUsers()
+
+function goToPage(n) {
+  if (n < 1 || (users.value?.meta?.last_page && n > users.value.meta.last_page)) return
+  setPage(n)
+  getUserRole(role.id, searchQuery)
+}
 function previewImage(event) {
   const file = event.target.files[0]
   if (file && file.type.startsWith('image/')) {
@@ -667,45 +651,89 @@ function previewImage(event) {
   }
 }
 
-onMounted(async () => {
-  await  fetchDropdownData()
-  await nextTick()
-  initSelect2()
-  if (role === 'SuperAdmin'){
-    createForm.value = {
-      name: true,
-      email: true,
-      whatsapp:true,
-      city:true,
-      zone:true,
-      avatar:true,
-      password:true
+
+
+
+watch(roles, async (val) => {
+  if (!val || !val.data) return
+  const found = val.data.find(r => r?.title === route.params.role)
+  if (found) {
+    Object.assign(role, found)
+
+    try {
+      await getUserRole(role.id, searchQuery)
+    } catch (err) {
+      console.error('Error fetching users:', err)
+    } finally {
+      if (role.title === 'Customer') {
+        createForm.value = {
+          name: true,
+          email: true,
+          whatsapp: true,
+          city: true,
+          zone: true,
+          avatar: true,
+          password: true,
+          phone: true,
+          rank: true,
+          branch: true,
+          referrer: true,
+          luxota_website: true,
+          website: true,
+        }
+      } else {
+        createForm.value = {
+          name: true,
+          email: true,
+          whatsapp: true,
+          city: true,
+          zone: true,
+          avatar: true,
+          password: true,
+          phone: true,
+        }
+        loading.value = false
+
+
+      }
     }
   }
+
+}, {immediate: true})
+onMounted(async () => {
+  initSelect()
+  loading.value = true
+  await getRoles()
 });
 
 function addWebsite() {
   const newSite = website.value.trim()
-  console.log('form.websites type:', typeof form.websites)
-  console.log('isArray:', Array.isArray(form.websites))
-  console.log('form.websites:', form.websites)
   if (newSite && !form.websites.includes(newSite)) {
     form.websites.push(newSite)
     website.value = ''
   }
 }
+
 function removeWebsite(index) {
   form.websites.splice(index, 1)
 }
+
 function setUser(id) {
   selectedUserId.value = id
+  const user = users.value.data.find(u => u.id === id)
+  userName.value = user ? user.name : ''
 }
+
 function closeModalAndResetForm() {
+  remove_choice_value()
+
   const modalEl = document.getElementById('create')
   const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl)
   modal.hide()
+
   resetForm()
 }
+
 function resetForm() {
   Object.keys(form).forEach(key => {
     if (Array.isArray(form[key])) {
@@ -720,112 +748,89 @@ function resetForm() {
     delete errors[key]
   })
 }
+function remove_choice_value() {
+  Object.entries(choicesInstances).forEach(([key, value]) => {
+    value.removeActiveItems()
+  });
+}
 
 function debounceSearch() {
   clearTimeout(searchTimeout)
   searchTimeout = setTimeout(() => {
-    page.value = 1
-    fetchUsers()
+    setPage(1)
+    searchUsers(searchQuery,role.id)
   }, 500)
 }
+
 function clearSearch() {
   Object.keys(searchQuery).forEach(key => {
     searchQuery[key] = ''
   })
-  page.value = 1
-  fetchUsers()
+  setPage(1)
+  getUserRole(role.id, searchQuery)
 }
-async function fetchUsers() {
-  error.value = null
-  isLoadingUsers.value = true
-  try {
-    const params = new URLSearchParams({
-      page: page.value,
-      ...searchQuery
-    })
 
-    const { data: responseUsers } = await useFetch(`/users?${params}`, {
-      baseURL: config.public.apiBase
-    })
-    users.value = responseUsers.value
-  } catch (e) {
-    error.value = e
-  } finally {
-    isLoadingUsers.value = false
-  }
-}
 async function fetchDropdownData() {
   try {
+    if (isDropdownDataLoaded.value) return
 
-    const [rolesRes, zonesRes, ranksRes, branchesRes, countriesRes, citiesRes] = await Promise.all([
-      $fetch('/roles/all', { baseURL: config.public.apiBase }),
-      $fetch('/zones/all', { baseURL: config.public.apiBase }),
-      $fetch('/ranks/all', { baseURL: config.public.apiBase }),
-      $fetch('/branches/all', { baseURL: config.public.apiBase }),
-      $fetch('/countries/all', { baseURL: config.public.apiBase }),
-      $fetch('/cities/all', { baseURL: config.public.apiBase }),
+    const [rolesRes, zonesRes, ranksRes, branchesRes, countriesRes, referrersRes] = await Promise.all([
+      $fetch('/roles/all', {baseURL: config.public.apiBase}),
+      $fetch('/zones/all', {baseURL: config.public.apiBase}),
+      $fetch('/ranks/all', {baseURL: config.public.apiBase}),
+      $fetch('/branches/all', {baseURL: config.public.apiBase}),
+      $fetch('/countries/all', {baseURL: config.public.apiBase}),
+      $fetch('/referrers/all', {baseURL: config.public.apiBase}),
     ])
 
 
     roles.value = rolesRes.data || []
     zones.value = zonesRes.data || []
     ranks.value = ranksRes.data || []
-    cities.value = citiesRes.data || []
     branches.value = branchesRes.data || []
+    referrers.value = referrersRes.data || []
     countries.value = countriesRes.data || []
-
+    isDropdownDataLoaded.value = true
     return true
   } catch (e) {
     console.error('Error fetching dropdown data:', e)
     return false
   }
 }
-async function fetchCities(zoneId) {
-  if (!zoneId) {
-    cities.value = []
-    return
+const getDisplayedPages = computed(() => {
+  if (!users.value?.meta) return []
+  
+  const current = users.value.meta.current_page
+  const last = users.value.meta.last_page
+  const delta = 2
+  const range = []
+  const rangeWithDots = []
+  let l
+
+  for (let i = 1; i <= last; i++) {
+    if (i === 1 || i === last || (i >= current - delta && i <= current + delta)) {
+      range.push(i)
+    }
   }
 
-  try {
-    const citiesRes = await $fetch(`/cities?zone_id=${zoneId}`, { baseURL: config.public.apiBase })
-    cities.value = citiesRes.data || []
-  } catch (e) {
-    console.error('Error fetching cities:', e)
-    cities.value = []
-  }
-}
-function onZoneChange() {
-  form.city_id = ''
-  fetchCities(form.zone_id)
-
-  // Update city Select2 after cities are loaded
-  setTimeout(() => {
-    if (typeof $ !== 'undefined' && $.fn.select2) {
-      // Find the city select element specifically
-      const citySelect = $('.js-example-basic-single').eq(2) // City is the 3rd select
-      if (citySelect.length) {
-        citySelect.select2('destroy')
-        citySelect.select2({
-          width: '100%',
-          placeholder: 'Select City',
-          allowClear: true,
-          minimumResultsForSearch: 0,
-          language: {
-            noResults: function() {
-              return "No cities found";
-            },
-            searching: function() {
-              return "Searching cities...";
-            }
-          }
-        })
+  for (let i of range) {
+    if (l) {
+      if (i - l === 2) {
+        rangeWithDots.push(l + 1)
+      } else if (i - l !== 1) {
+        rangeWithDots.push('...')
       }
     }
-  }, 300)
-}
-function goToPage(newPage) {
-  page.value = newPage
-}
+    rangeWithDots.push(i)
+    l = i
+  }
+
+  return rangeWithDots
+})
+
+
+
+
 async function toggleStatus(user) {
   if (isLoadingId.value) return
   isLoadingId.value = user.id
@@ -841,6 +846,7 @@ async function toggleStatus(user) {
     isLoadingId.value = null
   }
 }
+
 function validateForm() {
   Object.keys(errors).forEach(key => delete errors[key])
 
@@ -860,12 +866,12 @@ function validateForm() {
     errors.password = 'Password must be at least 6 characters.'
   }
 
-  if (!form.phone || form.phone.trim() === '') {
-    errors.phone = 'Phone is required.'
-  }
 
-  if (!form.country_code) {
-    errors.country_code = 'Country code is required.'
+  if (!form.whatsapp_country_code) {
+    errors.whatsapp_country_code = 'Whatsapp country code is required.'
+  }
+  if (!form.whatsapp_number) {
+    errors.whatsapp_number = 'Whatsapp number is required.'
   }
 
   if (!form.role_id) {
@@ -875,114 +881,231 @@ function validateForm() {
   if (!form.zone_id) {
     errors.zone_id = 'Zone is required.'
   }
-
   if (!form.city_id) {
     errors.city_id = 'City is required.'
   }
-
-  if (!form.rank_id) {
-    errors.rank_id = 'Rank is required.'
+  if (!form.phone || form.phone.trim() === '') {
+    errors.phone = 'Phone is required.'
   }
+  if (form.role_id === 1) {
 
-  if (!form.referrer_id) {
-    errors.referrer_id = 'Referrer is required.'
-  }
 
-  if (!form.branch_id) {
-    errors.branch_id = 'Branch is required.'
+    if (!form.rank_id) {
+      errors.rank_id = 'Rank is required.'
+    }
+
+    if (!form.referrer_id) {
+      errors.referrer_id = 'Referrer is required.'
+    }
+
+    if (!form.branch_id) {
+      errors.branch_id = 'Branch is required.'
+    }
   }
 
   return Object.keys(errors).length === 0
 }
+
 async function handleSubmit() {
   if (!validateForm()) return
-
-  createUser.value = true
+  createNewUser.value = true
   const payload = new FormData()
-
   Object.keys(form).forEach(key => {
     if (form[key] !== '' && form[key] !== null) {
+      if (key === 'avatar') {
+        if (form[key] instanceof File) {
+          payload.append('avatar', form[key])
+        }
+        return
+      }
+
       payload.append(key, form[key])
     }
   })
-
   try {
     if (isEditMode.value && currentUser.value?.id) {
-      await $fetch(`/users/${currentUser.value.id}`, {
-        method: 'POST',
-        body: payload,
-        baseURL: config.public.apiBase,
-        headers: {
-          'X-HTTP-Method-Override': 'PUT',
-          'Accept': 'application/json',
+      const check = updateUser(currentUser.value.id,payload, errors)
+      check.then(value => {
+        if (value) {
+          getUserRole(role.id, searchQuery)
+          createNewUser.value = false
+          closeModalAndResetForm()
+        } else {
+          createNewUser.value = false
         }
-      })
-      nuxtApp.$toast({
-        title: 'Success!',
-        message: 'User updated successfully.',
-        type: 'success',
-        duration: 3000
-      })
+      });
     } else {
-      await useFetch('/users', {
-        method: 'POST',
-        body: payload,
-        baseURL: config.public.apiBase,
-        headers: {
-          'Accept': 'application/json',
-        },
-      })
-      nuxtApp.$toast({
-        title: 'Success!',
-        message: 'User created successfully.',
-        type: 'success',
-        duration: 3000
-      })
-    }
+      const check = createUser(payload, errors)
+      check.then(value => {
+        if (value) {
+          getUserRole(role.id, searchQuery)
+          createNewUser.value = false
+          closeModalAndResetForm()
+        } else {
+          createNewUser.value = false
+        }
+      });
 
-    createUser.value = false
-    await fetchUsers()
-    closeModalAndResetForm()
+
+    }
   } catch (e) {
     console.error('Error sending data:', e)
-    createUser.value = false
+    createNewUser.value = false
   }
 }
+
 const createForm = ref({})
-function initSelect2() {
-  $('.set_select2').each(function () {
-    const $select = $(this);
-    if (!$select.hasClass('select2-hidden-accessible')) {
-      $select.select2();
-      const $parent = $select.closest('.select-wrapper')
-      const placeholderText = $select.find('option').first().text().trim()
-      $select.select2({
-        placeholder: placeholderText || 'Select',
-        allowClear: true,
-        dropdownParent: $parent.length ? $parent : $('body') // Fallback
-      })
+
+
+const choicesInstances = {}
+
+function initSelect() {
+  document.querySelectorAll('.choices-select').forEach((el) => {
+    const fieldName = el.getAttribute('name')
+
+    if (choicesInstances[fieldName]) {
+      choicesInstances[fieldName].destroy()
     }
-  });
+
+    if (fieldName && form[fieldName] !== undefined) {
+      el.value = form[fieldName]
+    }
+
+    const instance = new Choices(el, {
+      placeholder: true,
+      placeholderValue: 'Please select',
+      searchEnabled: false,
+      removeItemButton: true,
+    })
+
+    if (form[fieldName]) {
+      instance.setChoiceByValue(form[fieldName].toString())
+    }
+
+    choicesInstances[fieldName] = instance
+  })
 }
 
-async function openModal(user = null) {
-  resetForm()
-  if (user) {
-    isEditMode.value = true
-    currentUser.value = user
-    Object.keys(form).forEach(key => {
-      if (user[key] !== undefined) {
-        form[key] = user[key]
-      }
-    })
-    if (form.zone_id) {
-      await fetchCities(form.zone_id)
-    }
+
+async function initSelectWithSearch(initialCity = null) {
+  const el = document.querySelector('#city-select')
+  if (!el) {
+    console.error('Select element with ID #city-select not found')
+    return
   }
 
-  // Load dropdown data
+  const fieldName = el.getAttribute('name') || 'city'
+
+  // destroy previous if exists
+  if (choicesInstances[fieldName]) {
+    choicesInstances[fieldName].destroy()
+    delete choicesInstances[fieldName]
+  }
+
+  const choices = new Choices(el, {
+    searchEnabled: true,
+    shouldSort: false,
+    placeholder: true,
+    placeholderValue: 'You must type at least 3 characters',
+    noResultsText: 'No results found',
+    removeItemButton: false,
+    fuseOptions: null,
+    searchFloor: 3,
+  })
+
+  // ذخیره در آبجکت global
+  choicesInstances[fieldName] = choices
+
+  if (initialCity?.id && initialCity?.label) {
+    choices.setChoices(
+        [
+          {
+            value: initialCity.id,
+            label: initialCity.label,
+            selected: true,
+          }
+        ],
+        'value',
+        'label',
+        false
+    )
+  }
+
+  await nextTick()
+
+  const searchInput = document.querySelector('.choices__input--cloned')
+  if (!searchInput) {
+    console.error('Could not find Choices search input element')
+    return
+  }
+
+  let debounceTimer
+
+  searchInput.addEventListener('input', (e) => {
+    const searchTerm = e.target.value.trim()
+    clearTimeout(debounceTimer)
+
+    debounceTimer = setTimeout(async () => {
+      if (searchTerm.length < 3) {
+        choices.clearChoices()
+        return
+      }
+
+      try {
+        const response = await fetch(
+            `${config.public.apiBase}/cities/search?en=${encodeURIComponent(searchTerm)}`
+        )
+        const json = await response.json()
+
+        const cities = Array.isArray(json.data)
+            ? json.data
+                .filter(city => city.id && city.en)
+                .map(city => ({
+                  value: city.id,
+                  label: `${city.country.name} - ${city.en}`
+                }))
+            : []
+
+        choices.setChoices(cities, 'value', 'label', true)
+      } catch (error) {
+        console.error('Fetch error:', error)
+      }
+    }, 1000)
+  })
+}
+
+async function openModal(userSelect = null) {
+  resetForm()
+  form.role_id = role.id
+  isLoadingModalData.value = 1
   await fetchDropdownData()
   await nextTick()
+  if (userSelect) {
+    isEditMode.value = true
+    currentUser.value = userSelect
+
+
+    await getUserById(userSelect.id)
+    Object.keys(form).forEach(key => {
+
+      if (user.value.data[key] !== undefined) {
+        if (key === 'avatar') {
+          imagePreview.value = `${config.public.fileBase}/${user.value.data[key]}`
+        }
+        form[key] = user.value.data[key]
+      }
+    })
+    initSelectWithSearch({
+      id: user.value.data.city_id,
+      label: `${user.value.data.city.country} - ${user.value.data.city.name}`
+    })
+  } else {
+    initSelectWithSearch()
+  }
+  initSelect()
+
+  isLoadingModalData.value = 0
+
 }
 
 async function confirmDeleteUser() {
@@ -990,10 +1113,10 @@ async function confirmDeleteUser() {
 
   isDeleting.value = true
   try {
-    const { error } = await useFetch(`/users/${selectedUserId.value}`, {
+    const {error} = await useFetch(`/users/${selectedUserId.value}`, {
       method: 'DELETE',
       baseURL: config.public.apiBase,
-      headers: { Accept: 'application/json' },
+      headers: {Accept: 'application/json'},
     })
 
     const modalEl = document.getElementById('delete')
@@ -1012,8 +1135,7 @@ async function confirmDeleteUser() {
       type: 'success',
       duration: 3000
     })
-
-    await fetchUsers()
+    getUserRole(role.id, searchQuery)
   } catch (e) {
     console.error(e)
     alert('An error occurred during deletion.')

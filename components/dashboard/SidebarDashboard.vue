@@ -38,73 +38,26 @@
           </li>
 
           <li class="slide__category"><span class="category-name">Users</span></li>
-          <li class="slide">
-            <NuxtLink to="/dashboard/users" class="side-menu__item">
-              <i class="bx bx-user side-menu__icon"></i>
-              <span class="side-menu__label">Users</span>
-            </NuxtLink>
-          </li>
-          <li class="slide">
-            <NuxtLink to="/dashboard/roles" class="side-menu__item">
-              <i class="bx bx-user-check side-menu__icon"></i>
-              <span class="side-menu__label">Roles</span>
-            </NuxtLink>
-          </li>
-          <li class="slide">
-            <NuxtLink to="/dashboard/zones" class="side-menu__item">
-              <i class="bx bx-map side-menu__icon"></i>
-              <span class="side-menu__label">Zones</span>
-            </NuxtLink>
-          </li>
-          <li class="slide">
-            <NuxtLink to="/dashboard/ranks" class="side-menu__item">
-              <i class="bx bx-trophy side-menu__icon"></i>
-              <span class="side-menu__label">Ranks</span>
-            </NuxtLink>
-          </li>
-          <li class="slide">
-            <NuxtLink to="/dashboard/branches" class="side-menu__item">
-              <i class="bx bx-git-branch side-menu__icon"></i>
-              <span class="side-menu__label">Branches</span>
-            </NuxtLink>
-          </li>
-          <li class="slide">
-            <NuxtLink to="/dashboard/countries" class="side-menu__item">
-              <i class="bx bx-globe side-menu__icon"></i>
-              <span class="side-menu__label">Countries</span>
-            </NuxtLink>
-          </li>
-          <li class="slide">
-            <NuxtLink to="/dashboard/cities" class="side-menu__item">
-              <i class="bx bx-building-house side-menu__icon"></i>
-              <span class="side-menu__label">Cities</span>
-            </NuxtLink>
-          </li>
-          <li class="slide">
-            <NuxtLink to="/dashboard/referrers" class="side-menu__item">
-              <i class="bx bx-share-alt side-menu__icon"></i>
-              <span class="side-menu__label">Referrers</span>
-            </NuxtLink>
-          </li>
           <li class="slide has-sub" :class="{ 'open': isDropdownOpen }">
             <a href="#" class="side-menu__item" @click.prevent="toggleDropdown">
               <i class="bx bx-home side-menu__icon"></i>
               <span class="side-menu__label">
-        Dashboards
+        Users
         <span class="badge bg-warning-transparent ms-2">{{ roles?.length }}</span>
       </span>
-              <i class="fe fe-chevron-right side-menu__angle"></i>
+              <i class="fe fe-chevron-right side-menu__angle" :class="{ 'rotated': isDropdownOpen }"></i>
             </a>
 
-            <ul class="slide-menu child1" :style="{ display: isDropdownOpen ? 'block' : 'none' }">
+            <ul class="slide-menu child1" :style="{ display: isDropdownOpen ? 'block' : 'none' }" :class="{ 'menu-open': isDropdownOpen }">
               <li class="slide side-menu__label1">
-                <a href="javascript:void(0)">Dashboards</a>
+                <a href="javascript:void(0)">Users</a>
               </li>
 
               <li
                   v-for="role in roles"
                   :key="role.title"
                   class="slide"
+                  :class="{ 'active': isActive(`/dashboard/users/${role.title}`) }"
               >
                 <NuxtLink :to="`/dashboard/users/${role.title}`" class="side-menu__item">
                   {{ role.title }}
@@ -112,6 +65,49 @@
               </li>
             </ul>
           </li>
+          <li class="slide " :class="{ 'active': isActive('/dashboard/roles') }">
+            <NuxtLink to="/dashboard/roles" class="side-menu__item">
+              <i class="bx bx-user-check side-menu__icon"></i>
+              <span class="side-menu__label">Roles</span>
+            </NuxtLink>
+          </li>
+          <li class="slide" :class="{ 'active': isActive('/dashboard/zones') }">
+            <NuxtLink to="/dashboard/zones" class="side-menu__item">
+              <i class="bx bx-map side-menu__icon"></i>
+              <span class="side-menu__label">Zones</span>
+            </NuxtLink>
+          </li>
+          <li class="slide" :class="{ 'active': isActive('/dashboard/ranks') }">
+            <NuxtLink to="/dashboard/ranks" class="side-menu__item">
+              <i class="bx bx-trophy side-menu__icon"></i>
+              <span class="side-menu__label">Ranks</span>
+            </NuxtLink>
+          </li>
+          <li class="slide" :class="{ 'active': isActive('/dashboard/branches') }">
+            <NuxtLink to="/dashboard/branches" class="side-menu__item">
+              <i class="bx bx-git-branch side-menu__icon"></i>
+              <span class="side-menu__label">Branches</span>
+            </NuxtLink>
+          </li>
+          <li class="slide" :class="{ 'active': isActive('/dashboard/countries') }">
+            <NuxtLink to="/dashboard/countries" class="side-menu__item">
+              <i class="bx bx-globe side-menu__icon"></i>
+              <span class="side-menu__label">Countries</span>
+            </NuxtLink>
+          </li>
+          <li class="slide" :class="{ 'active': isActive('/dashboard/cities') }">
+            <NuxtLink to="/dashboard/cities" class="side-menu__item">
+              <i class="bx bx-building-house side-menu__icon"></i>
+              <span class="side-menu__label">Cities</span>
+            </NuxtLink>
+          </li>
+          <li class="slide" :class="{ 'active': isActive('/dashboard/referrers') }">
+            <NuxtLink to="/dashboard/referrers" class="side-menu__item">
+              <i class="bx bx-share-alt side-menu__icon"></i>
+              <span class="side-menu__label">Referrers</span>
+            </NuxtLink>
+          </li>
+
           <!-- Start::slide -->
 
 
@@ -128,91 +124,97 @@
 </template>
 
 <script setup>
-  import { ref, onMounted } from 'vue'
-  const roles = ref([])
-  const isDropdownOpen = ref(false)
-  const config = useRuntimeConfig()
+import { useRoute } from 'vue-router'
+import { ref,computed,onMounted,watch } from 'vue'
+const roles = ref([])
+const isDropdownOpen = ref(false)
+const config = useRuntimeConfig()
 
-  const toggleDropdown = () => {
-    isDropdownOpen.value = !isDropdownOpen.value
-  }
-  async function get_roles() {
-    try {
-      const data = await $fetch('/roles/all', {
-        baseURL: config.public.apiBase,
-      })
-      roles.value = data.data
-    } catch (error) {
-      console.error('Failed to fetch roles:', error)
-      // Optional fallback if fetch fails
-      roles.value = [
-        { name: 'admin', label: 'Admin Dashboard' },
-        { name: 'manager', label: 'Manager Dashboard' },
-        { name: 'user', label: 'User Dashboard' }
-      ]
-    }
-  }
 
-  onMounted(() => {
-    get_roles()
+const route = useRoute()
+onMounted(() => {
+  get_roles()
+})
+async function get_roles() {
+  try {
+    const data = await $fetch('/roles/all', {
+      baseURL: config.public.apiBase,
+    })
+    roles.value = data.data
+  } catch (error) {
+    console.error('Failed to fetch roles:', error)
     roles.value = [
-      { name: 'admin', label: 'Admin Dashboard' },
-      { name: 'manager', label: 'Manager Dashboard' },
-      { name: 'user', label: 'User Dashboard' }
+      { title: 'admin', label: 'Admin ' },
     ]
+  }
+}
+const toggleDropdown = () => {
+  isDropdownOpen.value = !isDropdownOpen.value
+}
+watch(() => route.path, (newPath) => {
+  isDropdownOpen.value = newPath.startsWith('/dashboard/users')
+})
 
-    setTimeout(() => {
-      if (typeof slideToggle === 'function') {
-        const firstLevelItems = document.querySelectorAll(".nav > ul > .slide.has-sub > a")
-        firstLevelItems.forEach((element) => {
-          element.addEventListener("click", (e) => {
-            e.preventDefault()
-            console.log('Dropdown clicked!')
-            const submenu = element.nextElementSibling
-            if (submenu) {
-              slideToggle(submenu)
-            }
-          })
-        })
-      } else {
-        console.log('slideToggle function not found')
-        
-        const firstLevelItems = document.querySelectorAll(".nav > ul > .slide.has-sub > a")
-        console.log('Using fallback, found first level items:', firstLevelItems.length)
-        
-        firstLevelItems.forEach((element) => {
-          element.addEventListener("click", (e) => {
-            e.preventDefault()
-            console.log('Dropdown clicked (fallback)!')
-            const parent = element.closest('.slide.has-sub')
-            const submenu = parent.querySelector('.slide-menu')
-            
-            if (submenu) {
-              if (submenu.style.display === 'block' || window.getComputedStyle(submenu).display === 'block') {
-                submenu.style.display = 'none'
-                parent.classList.remove('open')
-              } else {
-                submenu.style.display = 'block'
-                parent.classList.add('open')
-              }
-            }
-          })
-        })
-      }
-    }, 500)
-  })
+const isActive = (path) => {
+  return route.path.startsWith(path)
+}
 </script>
+
 
 <style scoped>
 .slide-menu {
   transition: all 0.3s ease;
 }
+.slide.active {
+  background-color: #f5f5f5;
+  border-right: 3px solid #fd15e0;
+}
 
-.slide.has-sub.open > .side-menu__item .side-menu__angle {
-  transform: rotate(90deg);
+.side-menu__item {
+  transition: background-color 0.3s;
+}
+
+
+.slide-menu.menu-open {
+  animation: slideDown 0.3s ease;
+}
+
+.slide-menu li {
+  transition: all 0.3s ease;
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.slide-menu.menu-open li {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.slide-menu.menu-open li:nth-child(1) { animation-delay: 0.1s; }
+.slide-menu.menu-open li:nth-child(2) { animation-delay: 0.2s; }
+.slide-menu.menu-open li:nth-child(3) { animation-delay: 0.3s; }
+.slide-menu.menu-open li:nth-child(4) { animation-delay: 0.4s; }
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .side-menu__angle {
   transition: transform 0.3s ease;
+}
+
+.side-menu__angle.rotated {
+  transform: rotate(90deg);
+}
+
+.slide.has-sub.open > .side-menu__item .side-menu__angle {
+  transform: rotate(90deg);
 }
 </style>

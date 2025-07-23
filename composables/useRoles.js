@@ -1,124 +1,117 @@
-export const useUsers = () => {
+export const useRoles = () => {
   const config = useRuntimeConfig()
   const nuxtApp = useNuxtApp()
-  const users = ref([])
-  const user = ref(null)
+  const roles = ref([])
   const loading = ref(false)
-  const errorUser = ref(null)
-  const page = ref(1)
-  const perPage = ref(15)
+  const errorRole = ref(null)
 
-  const getUsers = async (params = {}) => {
-    loading.value = true
+  const getRoles = async (params = {}) => {
     try {
       const queryParams = new URLSearchParams({
         page: params.page || 1,
         ...params
       })
 
-      const response = await $fetch(`/users?${queryParams}`, {
+      const data = await $fetch(`roles/all?${queryParams}`, {
         baseURL: config.public.apiBase
       })
-      users.value = response
-      return response
+
+      roles.value = data
+      return data
     } catch (error) {
       console.error('Error fetching users:', error)
       throw error
-    } finally {
-      loading.value = false
     }
   }
 
+  // 🔍 گرفتن کاربر خاص
   const getUserById = async (id) => {
-    loading.value = true
     try {
-      const response = await $fetch(`/users/${id}`, {
-        baseURL: config.public.apiBase,
+      return await $fetch(`/users/${id}`, {
+        baseURL: config.public.apiBase
       })
-      user.value = response
-      return response
     } catch (error) {
       console.error('Error fetching user by ID:', error)
       throw error
-    } finally {
-      loading.value = false
     }
   }
 
-
-
-  const createUser = async (payload, errors=null) => {
-    const { data, error } = await useFetch('/users', {
-      method: 'POST',
-      body: payload,
-      baseURL: config.public.apiBase,
-      headers: {
-        'Accept': 'application/json',
-      },
-    })
-    Object.keys(errors).forEach(key => delete errors[key])
-
-    if (error.value) {
-      const allErrors = error.value?.data?.errors
-      if (allErrors && typeof allErrors === 'object') {
-        for (const field in allErrors) {
-          if (Array.isArray(allErrors[field])) {
-            errors[field] = allErrors[field][0]
-          }
+  // ➕ ساخت کاربر
+  const createUser = async (userData) => {
+    try {
+      const payload = new FormData()
+      Object.entries(userData).forEach(([key, value]) => {
+        if (value !== '' && value !== null) {
+          payload.append(key, key === 'status' ? (value ? '1' : '0') : value)
         }
+      })
 
-      } else {
-        errors.general = error.value?.data?.message || 'خطایی رخ داده است'
-      }
-      return  false
-    } else {
-      nuxtApp.$toast({
+      const response = await $fetch('/users', {
+        method: 'POST',
+        baseURL: config.public.apiBase,
+        body: payload,
+        headers: { Accept: 'application/json' }
+      })
+
+      nuxtApp.$toast?.({
         title: 'Success!',
         message: 'User created successfully.',
-        type: 'success',
-        duration: 3000,
+        type: 'success'
       })
-      return  true
+
+      reloadUsers()
+      return response
+    } catch (error) {
+      console.error('Error creating user:', error)
+      nuxtApp.$toast?.({
+        title: 'Error!',
+        message: 'Failed to create user.',
+        type: 'error'
+      })
+      throw error
     }
   }
 
-  const updateUser = async (id, payload, errors = null) => {
-    const { data, error } = await useFetch(`/users/${id}`, {
-      method: 'POST',
-      baseURL: config.public.apiBase,
-      headers: {
-        'X-HTTP-Method-Override': 'PUT',
-        Accept: 'application/json',
-      },
-      body: payload,
-    })
-
-    if (errors && typeof errors === 'object') {
-      Object.keys(errors).forEach(key => delete errors[key])
-    }
-    if (error.value) {
-      const allErrors = error.value?.data?.errors
-      if (allErrors && typeof allErrors === 'object') {
-        for (const field in allErrors) {
-          if (Array.isArray(allErrors[field])) {
-            errors[field] = allErrors[field][0]
-          }
+  // ✏️ ویرایش کاربر
+  const updateUser = async (id, userData) => {
+    try {
+      const payload = new FormData()
+      Object.entries(userData).forEach(([key, value]) => {
+        if (value !== '' && value !== null) {
+          payload.append(key, key === 'status' ? (value ? '1' : '0') : value)
         }
-      } else {
-        errors.general = error.value?.data?.message || 'خطایی رخ داده است'
-      }
-      return false
-    } else {
-      nuxtApp.$toast({
+      })
+
+      const response = await $fetch(`/users/${id}`, {
+        method: 'POST',
+        baseURL: config.public.apiBase,
+        headers: {
+          'X-HTTP-Method-Override': 'PUT',
+          Accept: 'application/json'
+        },
+        body: payload
+      })
+
+      nuxtApp.$toast?.({
         title: 'Success!',
         message: 'User updated successfully.',
-        type: 'success',
-        duration: 3000,
+        type: 'success'
       })
-      return true
+
+      reloadUsers()
+      return response
+    } catch (error) {
+      console.error('Error updating user:', error)
+      nuxtApp.$toast?.({
+        title: 'Error!',
+        message: 'Failed to update user.',
+        type: 'error'
+      })
+      throw error
     }
   }
 
+  // 🗑 حذف نرم کاربر
   const deleteUser = async (id) => {
     try {
       await $fetch(`/users/${id}`, {
@@ -145,6 +138,7 @@ export const useUsers = () => {
     }
   }
 
+  // ♻️ بازگرداندن کاربر
   const restoreUser = async (id) => {
     try {
       await $fetch(`/users/${id}/restore`, {
@@ -170,6 +164,7 @@ export const useUsers = () => {
     }
   }
 
+  // ❌ حذف دائم
   const forceDeleteUser = async (id) => {
     try {
       await $fetch(`/users/force-delete/${id}`, {
@@ -196,6 +191,7 @@ export const useUsers = () => {
     }
   }
 
+  // 🔁 تغییر وضعیت فعال/غیرفعال کاربر
   const toggleUserStatus = async (id) => {
     try {
       const response = await $fetch(`/users/${id}/toggle-status`, {
@@ -209,6 +205,7 @@ export const useUsers = () => {
         type: 'success'
       })
 
+      reloadUsers()
       return response
     } catch (error) {
       console.error('Error toggling user status:', error)
@@ -221,22 +218,21 @@ export const useUsers = () => {
     }
   }
 
+  // 🔍 جستجوی کاربر
   const searchUsers = async (filters = {}) => {
     try {
       const queryParams = new URLSearchParams(filters)
-      const response = await $fetch(`/users/search?${queryParams}`, {
+
+      return await $fetch(`/users/search?${queryParams}`, {
         baseURL: config.public.apiBase
       })
-      users.value = response
-      console.log(users.value)
-      return response
-
     } catch (error) {
       console.error('Error searching users:', error)
       throw error
     }
   }
 
+  // 🗃 لیست کاربران حذف‌شده
   const getTrashedUsers = async (params = {}) => {
     try {
       const queryParams = new URLSearchParams({
@@ -252,39 +248,12 @@ export const useUsers = () => {
       throw error
     }
   }
-  const getUserRole = async (roleId, filters = {}) => {
-    loading.value = true
-    try {
-      const queryParams = new URLSearchParams({
-        page: page.value,
-        ...filters
-      })
 
-      const response = await $fetch(`/users/user-role/${roleId}?${queryParams}`, {
-        method: 'POST',
-        baseURL: config.public.apiBase
-      })
-      users.value = response
-      return response
-    } catch (error) {
-      console.error('Error fetching users by role:', error)
-      throw error
-    } finally {
-      loading.value = false
-    }
-  }
-
-  const setPage = (newPage) => {
-    page.value = newPage
-  }
+  // 📦 خروجی نهایی
   return {
-    users,
-    user,
-    loading,
-    errorUser,
-    page,
-    perPage,
-    getUsers,
+    roles,
+    errorRole,
+    getRoles,
     getUserById,
     createUser,
     updateUser,
@@ -294,8 +263,5 @@ export const useUsers = () => {
     toggleUserStatus,
     searchUsers,
     getTrashedUsers,
-    getUserRole,
-    setPage,
   }
 }
-
