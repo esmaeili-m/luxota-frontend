@@ -33,44 +33,42 @@
 
           <!-- Search and Filter Section -->
           <div class="row mb-3">
-            <div class="col-md-3">
+            <div class="col-md-2">
               <input
                   type="text"
                   class="form-control"
                   v-model="searchQuery.name"
                   placeholder="Search by name..."
-                  @input="debounceSearch"
               />
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
               <input
                   type="text"
                   class="form-control"
                   v-model="searchQuery.email"
                   placeholder="Search by email..."
-                  @input="debounceSearch"
               />
             </div>
+            <div class="col-md-2 ">
 
-            <div class="col-md-2 select-wrapper">
-
-              <select class="choices-select"
+              <select class="choices-select form-select-lg "
                       name="searchQuertStatus"
                       ref="searchQuertStatus"
-                      v-model="searchQuery.status" @change="debounceSearch">
+                      v-model="searchQuery.status" >
                 <option value="">All Status</option>
                 <option value="1">Active</option>
                 <option value="0">Inactive</option>
               </select>
             </div>
-            <div class="col-md-2">
-              <select class="form-select " v-model="searchQuery.role_id" @change="debounceSearch">
-                <option value="">All Roles</option>
-                <option v-for="role in roles" :key="role.id" :value="role.id">{{ role.title }}</option>
-              </select>
+
+            <div v-if="!isSearching" class="col-md-2">
+              <button  class="btn btn-success-light ms-2" @click="search">Submit</button>
+              <button class="btn btn-danger-light ms-1" @click="clearSearch">Clear</button>
             </div>
-            <div class="col-md-2">
-              <button class="btn btn-primary" @click="clearSearch">Clear</button>
+            <div v-else class="col-md-2">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Searching..</span>
+              </div>
             </div>
           </div>
 
@@ -473,9 +471,9 @@
               </div>
               <div v-show="createForm.parent" class="col-md-4 mb-3">
                 <label class="form-label text-muted">Parent User</label>
-                <select class="form-select" v-model="form.parent_id">
+                <select name="parent_id" class="choices-select" v-model="form.parent_id">
                   <option value="">Select Parent User</option>
-                  <option v-for="user in users" :key="user.id" :value="user.id">
+                  <option v-for="user in users.data" :key="user.id" :value="user.id">
                     {{ user.name }} ({{ user.email }})
                   </option>
                 </select>
@@ -630,6 +628,7 @@ const branches = ref([])
 const referrers = ref([])
 const countries = ref([])
 const imagePreview = ref(null)
+const isSearching = ref(false)
 let searchTimeout
 const website = ref(null)
 const isDropdownDataLoaded = ref(false)
@@ -650,7 +649,18 @@ function previewImage(event) {
     imagePreview.value = null
   }
 }
+async function search(){
+  isSearching.value= true
+  searchQuery.role_id =role.id
+  try {
+    await searchUsers(searchQuery); // صبر کن تا عملیات جست‌وجو تموم بشه
+  } catch (error) {
+    console.error("Search failed:", error);
+  } finally {
+    isSearching.value = false;
+  }
 
+}
 
 
 
@@ -680,6 +690,7 @@ watch(roles, async (val) => {
           referrer: true,
           luxota_website: true,
           website: true,
+          parent: true,
         }
       } else {
         createForm.value = {
@@ -974,7 +985,7 @@ function initSelect() {
     const instance = new Choices(el, {
       placeholder: true,
       placeholderValue: 'Please select',
-      searchEnabled: false,
+      searchEnabled: true,
       removeItemButton: true,
     })
 
