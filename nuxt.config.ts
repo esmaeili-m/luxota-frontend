@@ -2,6 +2,7 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-05-15',
   devtools: { enabled: true },
+  modules: ['@pinia/nuxt'],
   plugins: [
   ],
   runtimeConfig: {
@@ -10,5 +11,9 @@ export default defineNuxtConfig({
       fileBase: 'http://localhost:8000/storage'
     }
   },
-
+  css: [
+    '~/public/dashboard-assets/libs/bootstrap/css/bootstrap.min.css',
+    '~/public/dashboard-assets/css/styles.min.css',
+    '~/public/dashboard-assets/css/icons.min.css'
+  ]
 })

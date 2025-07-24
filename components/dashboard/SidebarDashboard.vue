@@ -55,12 +55,12 @@
 
               <li
                   v-for="role in roles"
-                  :key="role.title"
+                  :key="role.name"
                   class="slide"
-                  :class="{ 'active': isActive(`/dashboard/users/${role.title}`) }"
+                  :class="{ 'active': isActive(`/dashboard/users/${role.name}`) }"
               >
-                <NuxtLink :to="`/dashboard/users/${role.title}`" class="side-menu__item">
-                  {{ role.title }}
+                <NuxtLink :to="`/dashboard/users/${role.name}`" class="side-menu__item">
+                  {{ role.name }}
                 </NuxtLink>
               </li>
             </ul>
@@ -144,7 +144,7 @@ async function get_roles() {
   } catch (error) {
     console.error('Failed to fetch roles:', error)
     roles.value = [
-      { title: 'admin', label: 'Admin ' },
+      { name: 'name', label: 'Admin ' },
     ]
   }
 }
