@@ -308,6 +308,8 @@
               </div>
 
 
+
+
               <div v-if="createForm.password" class="col-md-4 mb-3">
                 <label class="form-label text-muted">Password {{ isEditMode ? '' : '*' }}</label>
                 <input
@@ -471,9 +473,9 @@
               </div>
               <div v-show="createForm.parent" class="col-md-4 mb-3">
                 <label class="form-label text-muted">Parent User</label>
-                <select name="parent_id" class="choices-select" v-model="form.parent_id">
+                <select name="parent" class="choices-select" v-model="form.parent_id">
                   <option value="">Select Parent User</option>
-                  <option v-for="user in users.data" :key="user.id" :value="user.id">
+                  <option v-for="user in users?.data" :key="user?.id" :value="user?.id">
                     {{ user.name }} ({{ user.email }})
                   </option>
                 </select>
@@ -544,12 +546,7 @@
     </div>
   </div>
 </template>
-<style scoped>
-.select2-container.phone-code-select {
-  width: 120px !important;
-}
 
-</style>
 <script setup>
 import {ref, reactive, onMounted} from 'vue'
 import {useRoute} from 'vue-router'
@@ -582,7 +579,7 @@ const isLoadingModalData = ref(false)
 const isLoadingUsers = ref(false)
 
 const role = reactive({
-  title: '',
+  name: '',
   id: null,
 })
 const error = reactive({})
@@ -666,16 +663,16 @@ async function search(){
 
 watch(roles, async (val) => {
   if (!val || !val.data) return
-  const found = val.data.find(r => r?.title === route.params.role)
+  const found = val.data.find(r => r?.name === route.params.role)
   if (found) {
     Object.assign(role, found)
 
     try {
-      await getUserRole(role.id, searchQuery)
+      await getUserRole(role.id)
     } catch (err) {
       console.error('Error fetching users:', err)
     } finally {
-      if (role.title === 'Customer') {
+      if (role.name === 'Customer') {
         createForm.value = {
           name: true,
           email: true,
@@ -765,20 +762,14 @@ function remove_choice_value() {
   });
 }
 
-function debounceSearch() {
-  clearTimeout(searchTimeout)
-  searchTimeout = setTimeout(() => {
-    setPage(1)
-    searchUsers(searchQuery,role.id)
-  }, 500)
-}
+
 
 function clearSearch() {
   Object.keys(searchQuery).forEach(key => {
     searchQuery[key] = ''
   })
   setPage(1)
-  getUserRole(role.id, searchQuery)
+  getUserRole(role.id)
 }
 
 async function fetchDropdownData() {
@@ -984,8 +975,12 @@ function initSelect() {
 
     const instance = new Choices(el, {
       placeholder: true,
+      classNames: {
+        listDropdown: ['choices__list--dropdown']
+      },
       placeholderValue: 'Please select',
       searchEnabled: true,
+      itemSelectText: '',
       removeItemButton: true,
     })
 
@@ -1043,8 +1038,13 @@ async function initSelectWithSearch(initialCity = null) {
   }
 
   await nextTick()
+  const container = el.closest('.choices')
+  if (!container) {
+    console.error('Choices container not found for #city-select')
+    return
+  }
 
-  const searchInput = document.querySelector('.choices__input--cloned')
+  const searchInput = container.querySelector('.choices__input--cloned')
   if (!searchInput) {
     console.error('Could not find Choices search input element')
     return

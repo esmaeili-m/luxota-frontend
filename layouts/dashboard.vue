@@ -17,8 +17,12 @@
 import SidebarDashboard from '~/components/dashboard/SidebarDashboard.vue'
 import HeaderDashboard from '~/components/dashboard/HeaderDashboard.vue'
 import SettingsDashboard from '~/components/dashboard/SettingsDashboard.vue'
+definePageMeta({
+  middleware: 'auth'
+})
 useHead({
   title: 'Luxota Dashboard Panel',
+
   meta: [
     { charset: 'utf-8' },
     { name: 'viewport', content: 'width=device-width, initial-scale=1.0, user-scalable=no' },

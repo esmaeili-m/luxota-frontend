@@ -325,12 +325,17 @@ async function handleSubmit() {
         duration: 3000
       })
     } else {
+      alert(
+          useCookie('XSRF-TOKEN').value
+      )
       await useFetch('/branches', {
         method: 'POST',
         body: payload,
         baseURL: config.public.apiBase,
+        credentials: 'include',
         headers: {
           'Accept': 'application/json',
+          'X-XSRF-TOKEN': useCookie('XSRF-TOKEN').value,
         },
       })
       nuxtApp.$toast({

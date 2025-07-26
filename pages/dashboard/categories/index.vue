@@ -300,7 +300,6 @@ const nuxtApp = useNuxtApp()
 definePageMeta({
   layout: 'dashboard',
 })
-const config = useRuntimeConfig()
 const isLoadingModalData = ref(false)
 const isLoadingCategories = ref(false)
 const imagePreview = ref(null)

@@ -8,7 +8,9 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiBase: 'http://localhost:8000/api/v1',
-      fileBase: 'http://localhost:8000/storage'
+      fileBase: 'http://localhost:8000/storage',
+      csrfEndpoint: 'http://localhost:8000/sanctum/csrf-cookie'
+
     }
   },
   css: [

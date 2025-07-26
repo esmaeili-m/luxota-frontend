@@ -45,8 +45,6 @@ export const useUsers = () => {
     }
   }
 
-
-
   const createUser = async (payload, errors=null) => {
     const { data, error } = await useFetch('/users', {
       method: 'POST',
@@ -252,6 +250,7 @@ export const useUsers = () => {
       throw error
     }
   }
+
   const getUserRole = async (roleId, filters = {}) => {
     loading.value = true
     try {
@@ -259,10 +258,16 @@ export const useUsers = () => {
         page: page.value,
         ...filters
       })
+      const xsrfToken = useCookie('XSRF-TOKEN').value
 
-      const response = await $fetch(`/users/user-role/${roleId}?${queryParams}`, {
+      const response = await $fetch(`/users/user-role/${roleId}`, {
         method: 'POST',
-        baseURL: config.public.apiBase
+        baseURL: config.public.apiBase,
+        credentials: 'include',
+        headers: {
+          'X-XSRF-TOKEN': decodeURIComponent(xsrfToken),
+          Accept: 'application/json'
+        }
       })
       users.value = response
       return response
