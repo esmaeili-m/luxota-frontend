@@ -18,7 +18,9 @@
       <!-- Start::nav -->
       <nav class="nav nav-pills flex-column sub-open">
         <div class="slide-left" id="slide-left">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="#7b8191" width="24" height="24" viewBox="0 0 24 24"> <path d="M13.293 6.293 7.586 12l5.707 5.707 1.414-1.414L10.414 12l4.293-4.293z"></path> </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="#7b8191" width="24" height="24" viewBox="0 0 24 24">
+            <path d="M13.293 6.293 7.586 12l5.707 5.707 1.414-1.414L10.414 12l4.293-4.293z"></path>
+          </svg>
         </div>
         <ul class="main-menu">
           <!-- Start::slide__category -->
@@ -43,12 +45,18 @@
               <i class="bx bx-home side-menu__icon"></i>
               <span class="side-menu__label">
         Users
-        <span class="badge bg-warning-transparent ms-2">{{ roles?.length }}</span>
+        <span class="badge bg-warning-transparent ms-2" v-if="!isLoadingRoles">{{ roles?.length }}</span>
+        <span class="badge bg-warning-transparent ms-2" v-else>
+          <div class="spinner-border text-warning spinner-border-sm" role="status">
+              <span class="visually-hidden">Loading...</span>
+          </div>
+        </span>
       </span>
               <i class="fe fe-chevron-right side-menu__angle" :class="{ 'rotated': isDropdownOpen }"></i>
             </a>
 
-            <ul class="slide-menu child1" :style="{ display: isDropdownOpen ? 'block' : 'none' }" :class="{ 'menu-open': isDropdownOpen }">
+            <ul class="slide-menu child1" :style="{ display: isDropdownOpen ? 'block' : 'none' }"
+                :class="{ 'menu-open': isDropdownOpen }">
               <li class="slide side-menu__label1">
                 <a href="javascript:void(0)">Users</a>
               </li>
@@ -113,7 +121,11 @@
 
           <!-- End::slide -->
         </ul>
-        <div class="slide-right" id="slide-right"><svg xmlns="http://www.w3.org/2000/svg" fill="#7b8191" width="24" height="24" viewBox="0 0 24 24"> <path d="M10.707 17.707 16.414 12l-5.707-5.707-1.414 1.414L13.586 12l-4.293 4.293z"></path> </svg></div>
+        <div class="slide-right" id="slide-right">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="#7b8191" width="24" height="24" viewBox="0 0 24 24">
+            <path d="M10.707 17.707 16.414 12l-5.707-5.707-1.414 1.414L13.586 12l-4.293 4.293z"></path>
+          </svg>
+        </div>
       </nav>
       <!-- End::nav -->
 
@@ -124,18 +136,21 @@
 </template>
 
 <script setup>
-import { useRoute } from 'vue-router'
-import { ref,computed,onMounted,watch } from 'vue'
+import {useRoute} from 'vue-router'
+import {ref, computed, onMounted, watch} from 'vue'
+
 const roles = ref([])
 const isDropdownOpen = ref(false)
 const config = useRuntimeConfig()
-
+const isLoadingRoles = ref(true);
 
 const route = useRoute()
 onMounted(() => {
   get_roles()
 })
+
 async function get_roles() {
+  isLoadingRoles.value = true;
   try {
     const data = await $fetch('/roles/all', {
       baseURL: config.public.apiBase,
@@ -144,10 +159,13 @@ async function get_roles() {
   } catch (error) {
     console.error('Failed to fetch roles:', error)
     roles.value = [
-      { name: 'name', label: 'Admin ' },
+      {name: 'name', label: 'Admin '},
     ]
   }
+  isLoadingRoles.value = false;
+
 }
+
 const toggleDropdown = () => {
   isDropdownOpen.value = !isDropdownOpen.value
 }
@@ -165,6 +183,7 @@ const isActive = (path) => {
 .slide-menu {
   transition: all 0.3s ease;
 }
+
 .slide.active {
   background-color: #f5f5f5;
   border-right: 3px solid #fd15e0;
@@ -190,10 +209,21 @@ const isActive = (path) => {
   transform: translateY(0);
 }
 
-.slide-menu.menu-open li:nth-child(1) { animation-delay: 0.1s; }
-.slide-menu.menu-open li:nth-child(2) { animation-delay: 0.2s; }
-.slide-menu.menu-open li:nth-child(3) { animation-delay: 0.3s; }
-.slide-menu.menu-open li:nth-child(4) { animation-delay: 0.4s; }
+.slide-menu.menu-open li:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.slide-menu.menu-open li:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.slide-menu.menu-open li:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.slide-menu.menu-open li:nth-child(4) {
+  animation-delay: 0.4s;
+}
 
 @keyframes slideDown {
   from {

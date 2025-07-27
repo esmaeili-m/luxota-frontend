@@ -49,8 +49,7 @@
                   placeholder="Search by email..."
               />
             </div>
-            <div class="col-md-2 ">
-
+            <div v-show="!isLoadingSelect" class="col-md-2 ">
               <select class="choices-select form-select-lg "
                       name="searchQuertStatus"
                       ref="searchQuertStatus"
@@ -77,10 +76,10 @@
               <span class="visually-hidden">Loading</span>
             </div>
           </div>
-          <div v-else-if="!users?.data || users.data.length === 0">
+          <div v-else-if="users && users.data && users.data.length === 0">
             <EmptyState/>
           </div>
-          <div v-else class="table-responsive">
+          <div  v-else-if="users && users.data && users.data.length > 0" class="table-responsive">
             <table class="table text-nowrap">
               <thead class="table-primary">
               <tr>
@@ -277,17 +276,19 @@
               <div v-show="createForm.whatsapp" class="col-md-4 mb-3">
                 <label class="form-label text-muted">WhatsApp Number</label>
                 <div class="input-group" :class="{ 'is-invalid': errors.whatsapp_country_code }">
-                  <div class="input-group-text select-wrapper" style="padding: 0; border: none;">
+                  <div class="select-wrapper" style="padding: 0; border: none;  width: 180px;">
                     <select
                         name="whatsapp_country_code"
+
                         ref="whatsappCountryCodeSelect"
                         class="choices-select phone-code-select w-25"
                         v-model="form.whatsapp_country_code"
-                        style="border: none; background: transparent; width: 120px; border-bottom-right-radius: 0; border-top-right-radius: 0;"
+                        placeholder="Country Code"
+
                     >
                       <option value="">Code</option>
-                      <option v-for="country in countries" :key="country?.id" :value="country?.phone_code">
-                        {{ country.phone_code }}
+                      <option v-for="(country, countryKey) in countries" :key="countryKey" :value="countryKey">
+                        {{ country }}
                       </option>
                     </select>
                   </div>
@@ -329,12 +330,12 @@
                   <select
                       name="zone_id"
                       v-model="form.zone_id"
-                      placeholder="Select Zone"
+                      placeholder="Please Select Zone"
                       class="form-control choices-select"
                   >
-                    <option value="" disabled selected hidden>Please select</option>
-                    <option v-for="zone in zones" :key="zone.id" :value="zone.id">
-                      {{ zone.title }}
+                    <option value=""   >Select Zone</option>
+                    <option v-for="(zone, zoneKey) in zones" :key="zoneKey" :value="zoneKey">
+                      {{ zone }}
                     </option>
                   </select>
                 </div>
@@ -422,12 +423,12 @@
                 <select
                     class="choices-select "
                     name="branch_id"
-
+                    placeholder="Please Select Branch"
                     v-model="form.branch_id"
                 >
                   <option value="">Select Branch</option>
-                  <option v-for="branch in branches" :key="branch.id" :value="branch.id">
-                    {{ branch.title }}
+                  <option v-for="(branch, branchKey) in branches" :key="branchKey" :value="branchKey">
+                    {{ branch }}
                   </option>
                 </select>
                 <div class="invalid-feedback" v-if="errors.branch_id">
@@ -435,17 +436,17 @@
                 </div>
               </div>
 
-              <!-- Rank and Referrer -->
               <div v-show="createForm.rank" class="col-md-4 mb-3 select-wrapper">
                 <label class="form-label text-muted" :class="{ 'is-invalid': errors.rank_id }">Rank *</label>
                 <select
                     class="choices-select"
+                    placeholder="Please Select Rank"
                     name="rank_id"
                     v-model="form.rank_id"
                 >
                   <option value="">Select Rank</option>
-                  <option v-for="rank in ranks" :key="rank.id" :value="rank.id">
-                    {{ rank.title }}
+                  <option v-for="(rank, rankKey) in ranks" :key="rankKey" :value="rankKey">
+                    {{ rank }}
                   </option>
                 </select>
                 <div class="invalid-feedback" v-if="errors.rank_id">
@@ -458,24 +459,27 @@
                 <select
                     class="choices-select"
                     name="referrer_id"
+                    placeholder="Please Select Referrer"
 
                     v-model="form.referrer_id"
                     data-role="referrer"
                 >
                   <option value="">Select Referrer</option>
-                  <option v-for="referrer in referrers" :key="referrer.id" :value="referrer.id">
-                    {{ referrer.title }}
+                  <option v-for="(referrer , referrerKey) in referrers" :key="referrerKey" :value="referrerKey">
+                    {{ referrer }}
                   </option>
                 </select>
                 <div class="invalid-feedback" v-if="errors.referrer_id">
                   {{ errors.referrer_id }}
                 </div>
               </div>
-              <div v-show="createForm.parent" class="col-md-4 mb-3">
+              <div v-show="createForm.parent" class="col-md-6 mb-3">
                 <label class="form-label text-muted">Parent User</label>
-                <select name="parent" class="choices-select" v-model="form.parent_id">
+                <select name="parent"
+                        placeholder="Please Select Parent"
+                        class="choices-select" v-model="form.parent_id">
                   <option value="">Select Parent User</option>
-                  <option v-for="user in users?.data" :key="user?.id" :value="user?.id">
+                  <option v-for="user in parents" :key="user?.id" :value="user?.id">
                     {{ user.name }} ({{ user.email }})
                   </option>
                 </select>
@@ -622,15 +626,17 @@ const zones = ref([])
 const cities = ref([])
 const ranks = ref([])
 const branches = ref([])
+const parents = ref([])
 const referrers = ref([])
 const countries = ref([])
 const imagePreview = ref(null)
 const isSearching = ref(false)
+const isLoadingSelect = ref(false)
 let searchTimeout
 const website = ref(null)
 const isDropdownDataLoaded = ref(false)
 const {roles, loadingRole, errorRole, getRoles} = useRoles();
-const {users, user, loading, errorUser, getUserRole, getUserById, createUser, updateUser, page, perPage, setPage,searchUsers} = useUsers()
+const {users, user, loading, errorUser,formData,  loadUserFormData, getUserRole, getUserById, createUser, updateUser, page, perPage, setPage,searchUsers} = useUsers()
 
 function goToPage(n) {
   if (n < 1 || (users.value?.meta?.last_page && n > users.value.meta.last_page)) return
@@ -666,7 +672,6 @@ watch(roles, async (val) => {
   const found = val.data.find(r => r?.name === route.params.role)
   if (found) {
     Object.assign(role, found)
-
     try {
       await getUserRole(role.id)
     } catch (err) {
@@ -701,17 +706,27 @@ watch(roles, async (val) => {
           phone: true,
         }
         loading.value = false
-
-
       }
     }
   }
 
-}, {immediate: true})
+}, {immediate: false})
 onMounted(async () => {
-  initSelect()
+  isLoadingSelect.value = true
   loading.value = true
   await getRoles()
+  await loadUserFormData()
+  roles.value = formData.value.roles || []
+  countries.value = formData.value.countries || []
+  zones.value = formData.value.zones || []
+  branches.value = formData.value.branches || []
+  ranks.value = formData.value.ranks || []
+  referrers.value = formData.value.referrers || []
+  parents.value = formData.value.parents || []
+  await nextTick()
+  initSelect()
+  isLoadingSelect.value = false
+
 });
 
 function addWebsite() {
@@ -772,33 +787,6 @@ function clearSearch() {
   getUserRole(role.id)
 }
 
-async function fetchDropdownData() {
-  try {
-    if (isDropdownDataLoaded.value) return
-
-    const [rolesRes, zonesRes, ranksRes, branchesRes, countriesRes, referrersRes] = await Promise.all([
-      $fetch('/roles/all', {baseURL: config.public.apiBase}),
-      $fetch('/zones/all', {baseURL: config.public.apiBase}),
-      $fetch('/ranks/all', {baseURL: config.public.apiBase}),
-      $fetch('/branches/all', {baseURL: config.public.apiBase}),
-      $fetch('/countries/all', {baseURL: config.public.apiBase}),
-      $fetch('/referrers/all', {baseURL: config.public.apiBase}),
-    ])
-
-
-    roles.value = rolesRes.data || []
-    zones.value = zonesRes.data || []
-    ranks.value = ranksRes.data || []
-    branches.value = branchesRes.data || []
-    referrers.value = referrersRes.data || []
-    countries.value = countriesRes.data || []
-    isDropdownDataLoaded.value = true
-    return true
-  } catch (e) {
-    console.error('Error fetching dropdown data:', e)
-    return false
-  }
-}
 const getDisplayedPages = computed(() => {
   if (!users.value?.meta) return []
   
@@ -829,9 +817,6 @@ const getDisplayedPages = computed(() => {
 
   return rangeWithDots
 })
-
-
-
 
 async function toggleStatus(user) {
   if (isLoadingId.value) return
@@ -964,6 +949,8 @@ const choicesInstances = {}
 function initSelect() {
   document.querySelectorAll('.choices-select').forEach((el) => {
     const fieldName = el.getAttribute('name')
+    const placeholder = el.getAttribute('placeholder') || 'Please select';
+
 
     if (choicesInstances[fieldName]) {
       choicesInstances[fieldName].destroy()
@@ -978,7 +965,7 @@ function initSelect() {
       classNames: {
         listDropdown: ['choices__list--dropdown']
       },
-      placeholderValue: 'Please select',
+      placeholderValue: placeholder,
       searchEnabled: true,
       itemSelectText: '',
       removeItemButton: true,
@@ -1089,16 +1076,12 @@ async function openModal(userSelect = null) {
   resetForm()
   form.role_id = role.id
   isLoadingModalData.value = 1
-  await fetchDropdownData()
-  await nextTick()
+  // await fetchDropdownData()
   if (userSelect) {
     isEditMode.value = true
     currentUser.value = userSelect
-
-
     await getUserById(userSelect.id)
     Object.keys(form).forEach(key => {
-
       if (user.value.data[key] !== undefined) {
         if (key === 'avatar') {
           imagePreview.value = `${config.public.fileBase}/${user.value.data[key]}`
@@ -1113,8 +1096,6 @@ async function openModal(userSelect = null) {
   } else {
     initSelectWithSearch()
   }
-  initSelect()
-
   isLoadingModalData.value = 0
 
 }
