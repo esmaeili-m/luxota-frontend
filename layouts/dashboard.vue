@@ -18,7 +18,16 @@ import SidebarDashboard from '~/components/dashboard/SidebarDashboard.vue'
 import HeaderDashboard from '~/components/dashboard/HeaderDashboard.vue'
 import SettingsDashboard from '~/components/dashboard/SettingsDashboard.vue'
 definePageMeta({
-  middleware: 'auth'
+  middleware: ["auth"]
+})
+import { onMounted } from 'vue'
+import { useAuth } from '~/composables/useAuth'
+
+onMounted(async () => {
+  const { isAuthenticated, me } = useAuth()
+  if (!isAuthenticated.value) {
+    await me()
+  }
 })
 useHead({
   title: 'Luxota Dashboard Panel',

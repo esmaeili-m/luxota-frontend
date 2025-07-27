@@ -287,7 +287,7 @@
 
                     >
                       <option value="">Code</option>
-                      <option v-for="(country, countryKey) in countries" :key="countryKey" :value="countryKey">
+                      <option v-for="(country, countryKey) in countries" :key="countryKey" :value="country">
                         {{ country }}
                       </option>
                     </select>
@@ -344,7 +344,7 @@
                 </div>
 
               </div>
-              <div v-if="createForm.description" class="col-md-12 mb-3">
+              <div  class="col-md-12 mb-3">
                 <label class="form-label text-muted">Description</label>
                 <textarea
                     class="form-control"
@@ -503,6 +503,8 @@
                   </div>
                 </div>
               </div>
+              
+
             </div>
 
             <div class="modal-footer">
@@ -771,13 +773,12 @@ function resetForm() {
     delete errors[key]
   })
 }
+
 function remove_choice_value() {
   Object.entries(choicesInstances).forEach(([key, value]) => {
     value.removeActiveItems()
   });
 }
-
-
 
 function clearSearch() {
   Object.keys(searchQuery).forEach(key => {
@@ -821,11 +822,22 @@ const getDisplayedPages = computed(() => {
 async function toggleStatus(user) {
   if (isLoadingId.value) return
   isLoadingId.value = user.id
+
   try {
-    const response = await $fetch(`/users/${user.id}/toggle-status`, {
-      baseURL: config.public.apiBase,
-      method: 'POST',
+    const payload = new FormData()
+    Object.keys(user).forEach(key => {
+      if (user[key] !== '' && user[key] !== null) {
+        if (key === 'avatar') {
+          if (user[key] instanceof File) {
+            payload.append('avatar', user[key])
+          }
+          return
+        }
+        payload.append(key, user[key])
+      }
     })
+    payload.append('status', user.status === 1 ? 0 : 1)
+    await updateUser(user.id, payload)
     user.status = user.status === 1 ? 0 : 1
   } catch (error) {
     console.error('Error toggling status:', error)
@@ -1076,7 +1088,6 @@ async function openModal(userSelect = null) {
   resetForm()
   form.role_id = role.id
   isLoadingModalData.value = 1
-  // await fetchDropdownData()
   if (userSelect) {
     isEditMode.value = true
     currentUser.value = userSelect
@@ -1096,6 +1107,7 @@ async function openModal(userSelect = null) {
   } else {
     initSelectWithSearch()
   }
+  initSelect()
   isLoadingModalData.value = 0
 
 }

@@ -50,7 +50,8 @@ export const useAuthStore = defineStore('auth', {
       if (process.client) {
         const token = localStorage.getItem('auth_token')
         const user = localStorage.getItem('auth_user')
-        
+        console.log(token)
+
         if (token && user) {
           this.token = token
           this.user = JSON.parse(user)
@@ -58,5 +59,6 @@ export const useAuthStore = defineStore('auth', {
         }
       }
     }
+
   }
 }) 

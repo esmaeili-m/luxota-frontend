@@ -80,8 +80,6 @@ export const useAuth = () => {
 
   // گرفتن اطلاعات کاربر (مثلاً صفحه پروفایل)
   const me = async () => {
-    if (!token.value) return null
-
     try {
       const user = await $fetch('/auth/me', {
         baseURL: config.public.apiBase,
@@ -91,9 +89,13 @@ export const useAuth = () => {
         }
       })
       authStore.setUser(user)
+      console.log('a')
+
       return user
     } catch (err) {
       authStore.clearAuth()
+      console.log('b')
+
       return null
     }
   }

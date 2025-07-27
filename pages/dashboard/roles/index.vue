@@ -237,7 +237,10 @@ import {ref, watchEffect, reactive, onMounted } from 'vue'
 const nuxtApp = useNuxtApp()
 definePageMeta({
   layout: 'dashboard',
+  middleware: ["auth"]
+
 })
+
 const config = useRuntimeConfig()
 const isLoadingModalData = ref(false)
 const isLoadingRoles = ref(false)

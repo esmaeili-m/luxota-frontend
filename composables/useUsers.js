@@ -2,6 +2,7 @@ export const useUsers = () => {
   const config = useRuntimeConfig()
   const nuxtApp = useNuxtApp()
   const users = ref([])
+  const formData = ref([])
   const user = ref(null)
   const loading = ref(false)
   const errorUser = ref(null)
@@ -30,7 +31,6 @@ export const useUsers = () => {
   }
 
   const getUserById = async (id) => {
-    loading.value = true
     try {
       const response = await $fetch(`/users/${id}`, {
         baseURL: config.public.apiBase,
@@ -40,8 +40,6 @@ export const useUsers = () => {
     } catch (error) {
       console.error('Error fetching user by ID:', error)
       throw error
-    } finally {
-      loading.value = false
     }
   }
 
@@ -81,12 +79,15 @@ export const useUsers = () => {
   }
 
   const updateUser = async (id, payload, errors = null) => {
+    const xsrfToken = useCookie('XSRF-TOKEN').value
     const { data, error } = await useFetch(`/users/${id}`, {
       method: 'POST',
       baseURL: config.public.apiBase,
+      credentials: 'include',
       headers: {
+        'X-XSRF-TOKEN': decodeURIComponent(xsrfToken),
         'X-HTTP-Method-Override': 'PUT',
-        Accept: 'application/json',
+        Accept: 'application/json'
       },
       body: payload,
     })
@@ -122,7 +123,11 @@ export const useUsers = () => {
       await $fetch(`/users/${id}`, {
         method: 'DELETE',
         baseURL: config.public.apiBase,
-        headers: { Accept: 'application/json' }
+        credentials: 'include',
+        headers: {
+          'X-XSRF-TOKEN': decodeURIComponent(xsrfToken),
+          Accept: 'application/json'
+        }
       })
 
       nuxtApp.$toast?.({
@@ -148,6 +153,11 @@ export const useUsers = () => {
       await $fetch(`/users/${id}/restore`, {
         method: 'POST',
         baseURL: config.public.apiBase,
+        credentials: 'include',
+        headers: {
+          'X-XSRF-TOKEN': decodeURIComponent(xsrfToken),
+          Accept: 'application/json'
+        }
       })
 
       nuxtApp.$toast?.({
@@ -173,7 +183,11 @@ export const useUsers = () => {
       await $fetch(`/users/force-delete/${id}`, {
         method: 'DELETE',
         baseURL: config.public.apiBase,
-        headers: { Accept: 'application/json' }
+        credentials: 'include',
+        headers: {
+          'X-XSRF-TOKEN': decodeURIComponent(xsrfToken),
+          Accept: 'application/json'
+        }
       })
 
       nuxtApp.$toast?.({
@@ -196,9 +210,15 @@ export const useUsers = () => {
 
   const toggleUserStatus = async (id) => {
     try {
+      const xsrfToken = useCookie('XSRF-TOKEN').value
       const response = await $fetch(`/users/${id}/toggle-status`, {
         method: 'POST',
         baseURL: config.public.apiBase,
+        credentials: 'include',
+        headers: {
+          'X-XSRF-TOKEN': decodeURIComponent(xsrfToken),
+          Accept: 'application/json'
+        }
       })
 
       nuxtApp.$toast?.({
@@ -226,7 +246,6 @@ export const useUsers = () => {
         baseURL: config.public.apiBase
       })
       users.value = response
-      console.log(users.value)
       return response
 
     } catch (error) {
@@ -279,17 +298,38 @@ export const useUsers = () => {
     }
   }
 
+  const loadUserFormData = async () => {
+    loading.value = true
+    try {
+      const response = await $fetch(`/users/user-form-data`, {
+        baseURL: config.public.apiBase,
+        headers: {
+          Accept: 'application/json'
+        }
+      })
+      formData.value = response
+      return response
+    } catch (error) {
+      console.error('Error fetching formData :', error)
+      throw error
+    } finally {
+      loading.value = false
+    }
+  }
+
   const setPage = (newPage) => {
     page.value = newPage
   }
   return {
     users,
     user,
+    formData,
     loading,
     errorUser,
     page,
     perPage,
     getUsers,
+    loadUserFormData,
     getUserById,
     createUser,
     updateUser,
