@@ -24,15 +24,12 @@
                 @click="openModal()">
               Create {{ $route.params.role }} User<i class="ri-add-line ms-2 d-inline-block align-middle"></i>
             </button>
-            <NuxtLink to="/dashboard/users/trash/{{$route.params.role}}" class="btn btn-sm btn-warning-light">Trash<i
+            <NuxtLink :to="`/dashboard/users/trash/${$route.params.role}`" class="btn btn-sm btn-warning-light">Trash<i
                 class="ri-delete-bin-line ms-2 d-inline-block align-middle"></i></NuxtLink>
           </div>
         </div>
         <div class="card-body">
-
-
-          <!-- Search and Filter Section -->
-          <div class="row mb-3">
+          <div v-show="!loadingUsers" class="row mb-3">
             <div class="col-md-2">
               <input
                   type="text"
@@ -49,8 +46,8 @@
                   placeholder="Search by email..."
               />
             </div>
-            <div v-show="!isLoadingSelect" class="col-md-2 ">
-              <select class="choices-select form-select-lg "
+            <div class="col-md-2 ">
+              <select id="select-status" class="form-select-lg "
                       name="searchQuertStatus"
                       ref="searchQuertStatus"
                       v-model="searchQuery.status" >
@@ -70,8 +67,7 @@
               </div>
             </div>
           </div>
-
-          <div v-if="loading" class="text-center my-3">
+          <div v-if="loadingUsers" class="text-center my-3">
             <div class="spinner-border text-primary" role="status">
               <span class="visually-hidden">Loading</span>
             </div>
@@ -158,37 +154,33 @@
               </tbody>
             </table>
           </div>
-          <nav aria-label="Page navigation" class="pagination-style-4 mt-2" v-if="users?.meta?.last_page > 1">
+          <nav v-if="pagination.meta.last_page > 1" class="pagination-style-4 mt-2" aria-label="Page navigation">
             <ul class="pagination mb-0 flex-wrap">
-
-              <li class="page-item" :class="{ disabled: users.meta?.current_page === 1 }">
-                <a class="page-link" href="#" @click.prevent="goToPage(users.meta?.current_page - 1)">
+              <li class="page-item" :class="{ disabled: pagination.meta.current_page === 1 }">
+                <a class="page-link" href="#" @click.prevent="goToPage(pagination.meta.current_page - 1)">
                   Prev
                 </a>
               </li>
 
               <li
-                  v-for="pageNumber in getDisplayedPages"
-                  :key="pageNumber"
+                  v-for="page in getDisplayedPages"
+                  :key="page"
                   class="page-item"
-                  :class="{ active: pageNumber === users.meta?.current_page, disabled: pageNumber === '...' }"
+                  :class="{ active: page === pagination.meta.current_page, disabled: page === '...' }"
               >
                 <a
-                    v-if="pageNumber !== '...'"
-                    class="page-link"
+                    v-if="page !== '...'"
+                    class="page-link ms-1"
                     href="#"
-                    @click.prevent="goToPage(pageNumber)"
+                    @click.prevent="goToPage(page)"
                 >
-                  {{ pageNumber }}
+                  {{ page }}
                 </a>
-                <span v-else class="page-link">...</span>
+                <span v-else class="page-link" style="pointer-events: none;">...</span>
               </li>
 
-              <li
-                  class="page-item"
-                  :class="{ disabled: users.meta?.current_page === users.meta?.last_page }"
-              >
-                <a class="page-link" href="#" @click.prevent="goToPage(users.meta?.current_page + 1)">
+              <li class="page-item" :class="{ disabled: pagination.meta.current_page === pagination.meta.last_page }">
+                <a class="page-link" href="#" @click.prevent="goToPage(pagination.meta.current_page + 1)">
                   Next
                 </a>
               </li>
@@ -221,15 +213,15 @@
           ></button>
         </div>
 
-        <div class="modal-body text-start">
+        <div class="modal-body text-start" >
           <!-- Loader -->
-          <div v-show="isLoadingModalData" class="text-center my-3">
+          <div v-show="isLoadingModal" class="text-center my-3">
             <div class="spinner-border text-primary" role="status">
               <span class="visually-hidden">Loading...</span>
             </div>
           </div>
 
-          <form v-show="!isLoadingModalData" @submit.prevent="handleSubmit">
+          <form v-show="!isLoadingModal" @submit.prevent="handleSubmit">
             <div class="row">
               <!-- Basic Information -->
               <div v-if="createForm.name" class="col-md-4 mb-3">
@@ -286,7 +278,6 @@
                         placeholder="Country Code"
 
                     >
-                      <option value="">Code</option>
                       <option v-for="(country, countryKey) in countries" :key="countryKey" :value="country">
                         {{ country }}
                       </option>
@@ -333,7 +324,6 @@
                       placeholder="Please Select Zone"
                       class="form-control choices-select"
                   >
-                    <option value=""   >Select Zone</option>
                     <option v-for="(zone, zoneKey) in zones" :key="zoneKey" :value="zoneKey">
                       {{ zone }}
                     </option>
@@ -426,7 +416,6 @@
                     placeholder="Please Select Branch"
                     v-model="form.branch_id"
                 >
-                  <option value="">Select Branch</option>
                   <option v-for="(branch, branchKey) in branches" :key="branchKey" :value="branchKey">
                     {{ branch }}
                   </option>
@@ -444,7 +433,6 @@
                     name="rank_id"
                     v-model="form.rank_id"
                 >
-                  <option value="">Select Rank</option>
                   <option v-for="(rank, rankKey) in ranks" :key="rankKey" :value="rankKey">
                     {{ rank }}
                   </option>
@@ -464,7 +452,6 @@
                     v-model="form.referrer_id"
                     data-role="referrer"
                 >
-                  <option value="">Select Referrer</option>
                   <option v-for="(referrer , referrerKey) in referrers" :key="referrerKey" :value="referrerKey">
                     {{ referrer }}
                   </option>
@@ -475,10 +462,10 @@
               </div>
               <div v-show="createForm.parent" class="col-md-6 mb-3">
                 <label class="form-label text-muted">Parent User</label>
-                <select name="parent"
+                <select name="parent_id"
                         placeholder="Please Select Parent"
-                        class="choices-select" v-model="form.parent_id">
-                  <option value="">Select Parent User</option>
+                        class="choices-select"
+                        v-model="form.parent_id">
                   <option v-for="user in parents" :key="user?.id" :value="user?.id">
                     {{ user.name }} ({{ user.email }})
                   </option>
@@ -560,10 +547,9 @@ import {useRoute} from 'vue-router'
 const nuxtApp = useNuxtApp()
 const route = useRoute()
 const router = useRouter()
-//
-
 definePageMeta({
   layout: 'dashboard',
+  middalware:'auth'
 })
 useHead({
   link: [
@@ -581,13 +567,7 @@ useHead({
   ]
 })
 const config = useRuntimeConfig()
-const isLoadingModalData = ref(false)
 const isLoadingUsers = ref(false)
-
-const role = reactive({
-  name: '',
-  id: null,
-})
 const error = reactive({})
 const isLoadingId = ref(null)
 const errors = reactive({})
@@ -633,18 +613,55 @@ const referrers = ref([])
 const countries = ref([])
 const imagePreview = ref(null)
 const isSearching = ref(false)
-const isLoadingSelect = ref(false)
-let searchTimeout
+const isLoadingModal = ref(1)
 const website = ref(null)
 const isDropdownDataLoaded = ref(false)
 const {roles, loadingRole, errorRole, getRoles} = useRoles();
-const {users, user, loading, errorUser,formData,  loadUserFormData, getUserRole, getUserById, createUser, updateUser, page, perPage, setPage,searchUsers} = useUsers()
+const {users, role, user, loadingUsers, errorUser,formData, pagination,
+  currentPage, deleteUser,  loadUserFormData, getUsersWithRoleName, getUserById,goToPage, createUser, updateUser, page, perPage, setPage,searchUsers} = useUsers()
+const createForm = ref({})
+const choicesInstances = {}
 
-function goToPage(n) {
-  if (n < 1 || (users.value?.meta?.last_page && n > users.value.meta.last_page)) return
-  setPage(n)
-  getUserRole(role.id, searchQuery)
+onMounted(async () => {
+  loadingUsers.value = true
+  await getUsersWithRoleName(route.params.role)
+  await nextTick()
+  loadSelectChoice()
+  loadingUsers.value = false
+
+});
+function createFormInputs(){
+  if (role.value.name === 'Customer') {
+    createForm.value = {
+      name: true,
+      email: true,
+      whatsapp: true,
+      city: true,
+      zone: true,
+      avatar: true,
+      password: true,
+      phone: true,
+      rank: true,
+      branch: true,
+      referrer: true,
+      luxota_website: true,
+      website: true,
+      parent: true,
+    }
+  } else {
+    createForm.value = {
+      name: true,
+      email: true,
+      whatsapp: true,
+      city: true,
+      zone: true,
+      avatar: true,
+      password: true,
+      phone: true,
+    }
+  }
 }
+
 function previewImage(event) {
   const file = event.target.files[0]
   if (file && file.type.startsWith('image/')) {
@@ -654,6 +671,7 @@ function previewImage(event) {
     imagePreview.value = null
   }
 }
+
 async function search(){
   isSearching.value= true
   searchQuery.role_id =role.id
@@ -666,70 +684,6 @@ async function search(){
   }
 
 }
-
-
-
-watch(roles, async (val) => {
-  if (!val || !val.data) return
-  const found = val.data.find(r => r?.name === route.params.role)
-  if (found) {
-    Object.assign(role, found)
-    try {
-      await getUserRole(role.id)
-    } catch (err) {
-      console.error('Error fetching users:', err)
-    } finally {
-      if (role.name === 'Customer') {
-        createForm.value = {
-          name: true,
-          email: true,
-          whatsapp: true,
-          city: true,
-          zone: true,
-          avatar: true,
-          password: true,
-          phone: true,
-          rank: true,
-          branch: true,
-          referrer: true,
-          luxota_website: true,
-          website: true,
-          parent: true,
-        }
-      } else {
-        createForm.value = {
-          name: true,
-          email: true,
-          whatsapp: true,
-          city: true,
-          zone: true,
-          avatar: true,
-          password: true,
-          phone: true,
-        }
-        loading.value = false
-      }
-    }
-  }
-
-}, {immediate: false})
-onMounted(async () => {
-  isLoadingSelect.value = true
-  loading.value = true
-  await getRoles()
-  await loadUserFormData()
-  roles.value = formData.value.roles || []
-  countries.value = formData.value.countries || []
-  zones.value = formData.value.zones || []
-  branches.value = formData.value.branches || []
-  ranks.value = formData.value.ranks || []
-  referrers.value = formData.value.referrers || []
-  parents.value = formData.value.parents || []
-  await nextTick()
-  initSelect()
-  isLoadingSelect.value = false
-
-});
 
 function addWebsite() {
   const newSite = website.value.trim()
@@ -751,11 +705,10 @@ function setUser(id) {
 
 function closeModalAndResetForm() {
   remove_choice_value()
-
+  getUsersWithRoleName(route.params.role)
   const modalEl = document.getElementById('create')
   const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl)
   modal.hide()
-
   resetForm()
 }
 
@@ -769,15 +722,22 @@ function resetForm() {
   })
   isEditMode.value = false
   currentUser.value = null
+  createNewUser.value = false
   Object.keys(errors).forEach(key => {
     delete errors[key]
   })
 }
 
 function remove_choice_value() {
-  Object.entries(choicesInstances).forEach(([key, value]) => {
-    value.removeActiveItems()
-  });
+  Object.entries(choicesInstances).forEach(([key, instance]) => {
+    if (
+        instance &&
+        typeof instance.removeActiveItems === 'function' &&
+        instance.containerOuter // اختیاری اما مفیده
+    ) {
+      instance.removeActiveItems()
+    }
+  })
 }
 
 function clearSearch() {
@@ -785,14 +745,15 @@ function clearSearch() {
     searchQuery[key] = ''
   })
   setPage(1)
-  getUserRole(role.id)
+  getUsersWithRoleName(route.params.role,currentPage)
 }
 
 const getDisplayedPages = computed(() => {
-  if (!users.value?.meta) return []
-  
-  const current = users.value.meta.current_page
-  const last = users.value.meta.last_page
+  const meta = pagination.value.meta
+  if (!meta || !meta.last_page) return []
+
+  const current = meta.current_page
+  const last = meta.last_page
   const delta = 2
   const range = []
   const rangeWithDots = []
@@ -885,6 +846,8 @@ function validateForm() {
   }
   if (!form.phone || form.phone.trim() === '') {
     errors.phone = 'Phone is required.'
+  } else if (!/^\d+$/.test(form.phone)) {
+    errors.phone = 'Phone must contain only numbers.'
   }
   if (form.role_id === 1) {
 
@@ -906,6 +869,7 @@ function validateForm() {
 }
 
 async function handleSubmit() {
+
   if (!validateForm()) return
   createNewUser.value = true
   const payload = new FormData()
@@ -917,55 +881,52 @@ async function handleSubmit() {
         }
         return
       }
-
       payload.append(key, form[key])
     }
   })
   try {
     if (isEditMode.value && currentUser.value?.id) {
-      const check = updateUser(currentUser.value.id,payload, errors)
-      check.then(value => {
-        if (value) {
-          getUserRole(role.id, searchQuery)
-          createNewUser.value = false
-          closeModalAndResetForm()
-        } else {
-          createNewUser.value = false
-        }
-      });
+      await updateUser(currentUser.value.id,payload, errors)
     } else {
-      const check = createUser(payload, errors)
-      check.then(value => {
-        if (value) {
-          getUserRole(role.id, searchQuery)
-          createNewUser.value = false
-          closeModalAndResetForm()
-        } else {
-          createNewUser.value = false
-        }
-      });
-
-
+      await createUser(payload, errors)
     }
   } catch (e) {
     console.error('Error sending data:', e)
-    createNewUser.value = false
+  }finally {
+    if (Object.keys(errors).length === 0) {
+      closeModalAndResetForm()
+    }else{
+      createNewUser.value = false
+    }
   }
 }
 
-const createForm = ref({})
-
-
-const choicesInstances = {}
-
-function initSelect() {
+function loadSelectChoice(){
+  let selectStatus= document.getElementById('select-status');
+  new Choices(selectStatus, {
+    placeholder: true,
+    placeholderValue: 'Please Select Status',
+    itemSelectText: '',
+    removeItemButton: true,
+  })
+}
+async function initSelect() {
+  await nextTick()
   document.querySelectorAll('.choices-select').forEach((el) => {
     const fieldName = el.getAttribute('name')
-    const placeholder = el.getAttribute('placeholder') || 'Please select';
+    const placeholder = el.getAttribute('placeholder') || 'Please select'
 
+    const existingInstance = choicesInstances[fieldName]
+    if (existingInstance && typeof existingInstance.destroy === 'function') {
+      existingInstance.destroy()
+      delete choicesInstances[fieldName]
 
-    if (choicesInstances[fieldName]) {
-      choicesInstances[fieldName].destroy()
+      // پاک کردن flag تا امکان init دوباره باشه
+      delete el.dataset.choicesInitialized
+    }
+
+    if (el.dataset.choicesInitialized === 'true') {
+      return // قبلاً برای این عنصر Choices ساخته شده
     }
 
     if (fieldName && form[fieldName] !== undefined) {
@@ -975,7 +936,7 @@ function initSelect() {
     const instance = new Choices(el, {
       placeholder: true,
       classNames: {
-        listDropdown: ['choices__list--dropdown']
+        listDropdown: ['choices__list--dropdown'],
       },
       placeholderValue: placeholder,
       searchEnabled: true,
@@ -983,14 +944,17 @@ function initSelect() {
       removeItemButton: true,
     })
 
+    el.dataset.choicesInitialized = 'true'
+
+    // مقداردهی اولیه
     if (form[fieldName]) {
       instance.setChoiceByValue(form[fieldName].toString())
     }
 
+    // ذخیره instance
     choicesInstances[fieldName] = instance
   })
 }
-
 
 async function initSelectWithSearch(initialCity = null) {
   const el = document.querySelector('#city-select')
@@ -1085,9 +1049,22 @@ async function initSelectWithSearch(initialCity = null) {
 }
 
 async function openModal(userSelect = null) {
+  isLoadingModal.value = 1
   resetForm()
-  form.role_id = role.id
-  isLoadingModalData.value = 1
+  remove_choice_value()
+  await loadUserFormData()
+  roles.value = formData.value.roles || []
+  countries.value = formData.value.countries || []
+  zones.value = formData.value.zones || []
+  branches.value = formData.value.branches || []
+  ranks.value = formData.value.ranks || []
+  referrers.value = formData.value.referrers || []
+  parents.value = formData.value.parents || []
+  pagination.value.meta = users.value.meta
+  pagination.value.links = users.value.links
+  await nextTick()
+  form.role_id = role.value.id
+  createFormInputs()
   if (userSelect) {
     isEditMode.value = true
     currentUser.value = userSelect
@@ -1096,6 +1073,10 @@ async function openModal(userSelect = null) {
       if (user.value.data[key] !== undefined) {
         if (key === 'avatar') {
           imagePreview.value = `${config.public.fileBase}/${user.value.data[key]}`
+        }
+        if (key === 'websites' && user.value.data[key] !== null){
+          form[key] = user.value.data[key].split(',')
+          return
         }
         form[key] = user.value.data[key]
       }
@@ -1108,42 +1089,27 @@ async function openModal(userSelect = null) {
     initSelectWithSearch()
   }
   initSelect()
-  isLoadingModalData.value = 0
+  isLoadingModal.value = 0
 
 }
 
 async function confirmDeleteUser() {
   if (!selectedUserId.value) return
+  isDeleting.value = false
 
-  isDeleting.value = true
   try {
-    const {error} = await useFetch(`/users/${selectedUserId.value}`, {
-      method: 'DELETE',
-      baseURL: config.public.apiBase,
-      headers: {Accept: 'application/json'},
-    })
+    isDeleting.value = true
+
+    await deleteUser(selectedUserId.value)
 
     const modalEl = document.getElementById('delete')
     const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl)
     modal.hide()
-
-    if (error.value) {
-      alert('Failed to delete user.')
-      console.error(error.value)
-      return
-    }
-
-    nuxtApp.$toast({
-      title: 'Success!',
-      message: 'User moved to trash.',
-      type: 'success',
-      duration: 3000
-    })
-    getUserRole(role.id, searchQuery)
   } catch (e) {
     console.error(e)
     alert('An error occurred during deletion.')
   } finally {
+    getUsersWithRoleName(route.params.role, searchQuery)
     isDeleting.value = false
     selectedUserId.value = null
   }

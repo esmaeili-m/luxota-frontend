@@ -6,7 +6,7 @@
       <nav>
         <ol class="breadcrumb mb-0">
           <li class="breadcrumb-item">
-            <NuxtLink to="/dashboard/users">Users</NuxtLink>
+            <NuxtLink :to="`/dashboard/users/${$route.params.role}`">Users</NuxtLink>
           </li>
           <li class="breadcrumb-item active" aria-current="page">Trash</li>
         </ol>
@@ -22,7 +22,7 @@
             Deleted Users
           </div>
           <div class="prism-toggle">
-            <NuxtLink to="/dashboard/users" class="btn btn-sm btn-primary-light">
+            <NuxtLink :to="`/dashboard/users/${$route.params.role}`" class="btn btn-sm btn-primary-light">
               Back to Users<i class="ri-arrow-left-line ms-2 d-inline-block align-middle"></i>
             </NuxtLink>
           </div>
@@ -55,10 +55,9 @@
                 <td>
                   <div class="d-flex align-items-center">
                     <div class="avatar avatar-sm me-2">
-                      <img v-if="user.avatar" :src="user.avatar" class="rounded-circle" alt="Avatar">
-                      <div v-else class="avatar-initials rounded-circle bg-secondary text-white">
-                        {{ user.name.charAt(0).toUpperCase() }}
-                      </div>
+                      <img  :src="user.avatar ? `${config.public.fileBase}/${user.avatar}` : '/dashboard-assets/images/authentication/user.png'"
+                            class="rounded"
+                            alt="Avatar">
                     </div>
                     <div>
                       <div class="fw-semibold">{{ user.name }}</div>
@@ -69,7 +68,7 @@
                 <td>{{ user.email }}</td>
                 <td>{{ user.phone }}</td>
                 <td>
-                  <span class="badge bg-info-transparent">{{ user.role?.title }}</span>
+                  <span class="badge bg-info-transparent">{{ user.role?.name }}</span>
                 </td>
                 <td>
                   <span class="text-muted">{{ formatDate(user.deleted_at) }}</span>
@@ -85,7 +84,7 @@
                     <ul class="dropdown-menu">
                       <li>
                         <a @click="restoreUser(user.id)"
-                           class="dropdown-item"
+                           class="dropdown-item cursor-pointer"
                            :class="{ 'disabled': isLoadingId === user.id }"
                            :style="{ pointerEvents: isLoadingId === user.id ? 'none' : 'auto' }">
                           Restore
@@ -195,25 +194,24 @@
 </template>
 
 <script setup>
-import { ref, watchEffect, reactive } from 'vue'
+import { ref, watchEffect, reactive, onMounted } from 'vue'
+import {useRoute} from "vue-router";
 
 const nuxtApp = useNuxtApp()
 definePageMeta({
   layout: 'dashboard',
 })
-
+const route = useRoute()
 const config = useRuntimeConfig()
 
 // Reactive data
-const isLoadingUsers = ref(false)
 const page = ref(1)
 const perPage = ref(15)
-const users = ref(null)
-const error = reactive({})
-const isLoadingId = ref(null)
 const isForceDeleting = ref(false)
 const selectedUserId = ref(null)
+const isLoadingId  = ref(null)
 const userName = ref('')
+const xsrfToken = useCookie('XSRF-TOKEN').value
 
 // Methods
 function setUser(id, name) {
@@ -232,20 +230,16 @@ function formatDate(dateString) {
   })
 }
 
-async function fetchUsers() {
-  error.value = null
-  isLoadingUsers.value = true
-  try {
-    const { data: responseUsers } = await useFetch(`/users/trash?page=${page.value}`, {
-      baseURL: config.public.apiBase
+const { data: users, error, pending: isLoadingUsers, refresh: fetchUsers, } = await useAsyncData(
+    'users-trash',
+    () => $fetch(`/users/trash?page=${page.value}`, {
+      baseURL: config.public.apiBase,
+      headers: {
+        'X-XSRF-TOKEN': decodeURIComponent(xsrfToken.value),
+        Accept: 'application/json',
+      },
     })
-    users.value = responseUsers.value
-  } catch (e) {
-    error.value = e
-  } finally {
-    isLoadingUsers.value = false
-  }
-}
+)
 
 function goToPage(newPage) {
   page.value = newPage
@@ -259,6 +253,11 @@ async function restoreUser(userId) {
     await $fetch(`/users/${userId}/restore`, {
       baseURL: config.public.apiBase,
       method: 'POST',
+      headers: {
+        'X-XSRF-TOKEN': decodeURIComponent(xsrfToken),
+        Accept: 'application/json',
+      },
+      credentials: 'include'
     })
 
     nuxtApp.$toast({
@@ -290,7 +289,12 @@ async function confirmForceDeleteUser() {
     await $fetch(`/users/force-delete/${selectedUserId.value}`, {
       method: 'DELETE',
       baseURL: config.public.apiBase,
-      headers: { Accept: 'application/json' },
+      headers: {
+        'X-XSRF-TOKEN': decodeURIComponent(xsrfToken),
+        Accept: 'application/json',
+      },
+      credentials: 'include'
+
     })
 
     const modalEl = document.getElementById('forceDelete')
@@ -320,10 +324,9 @@ async function confirmForceDeleteUser() {
   }
 }
 
-// Lifecycle
-watchEffect(() => {
-  fetchUsers()
-})
+
+
+
 </script>
 
 <style scoped>

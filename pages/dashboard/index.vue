@@ -59,7 +59,7 @@
                         <div class="d-flex align-items-top flex-wrap">
                           <div class="me-2">
                                                             <span class="avatar avatar-sm avatar-rounded">
-                                                                <img src="../assets/images/faces/10.jpg" alt="">
+<!--                                                                <img src="../assets/images/faces/10.jpg" alt="">-->
                                                             </span>
                           </div>
                           <div class="flex-fill">
@@ -87,7 +87,7 @@
                         <div class="d-flex align-items-top flex-wrap">
                           <div class="me-2">
                                                             <span class="avatar avatar-sm avatar-rounded">
-                                                                <img src="../assets/images/faces/12.jpg" alt="">
+<!--                                                                <img src="../assets/images/faces/12.jpg" alt="">-->
                                                             </span>
                           </div>
                           <div class="flex-fill">
@@ -343,7 +343,7 @@
                         <td>
                           <div class="d-flex align-items-center fw-semibold">
                                                                 <span class="avatar avatar-sm me-2 avatar-rounded">
-                                                                    <img src="../assets/images/faces/4.jpg" alt="img">
+<!--                                                                    <img src="../assets/images/faces/4.jpg" alt="img">-->
                                                                 </span>Mayor Kelly
                           </div>
                         </td>
@@ -365,7 +365,7 @@
                         <td>
                           <div class="d-flex align-items-center fw-semibold">
                                                                 <span class="avatar avatar-sm me-2 avatar-rounded">
-                                                                    <img src="../assets/images/faces/15.jpg" alt="img">
+<!--                                                                    <img src="../assets/images/faces/15.jpg" alt="img">-->
                                                                 </span>Andrew Garfield
                           </div>
                         </td>
@@ -387,7 +387,7 @@
                         <td>
                           <div class="d-flex align-items-center fw-semibold">
                                                                 <span class="avatar avatar-sm me-2 avatar-rounded">
-                                                                    <img src="../assets/images/faces/11.jpg" alt="img">
+<!--                                                                    <img src="../assets/images/faces/11.jpg" alt="img">-->
                                                                 </span>Simon Cowel
                           </div>
                         </td>
@@ -409,7 +409,7 @@
                         <td>
                           <div class="d-flex align-items-center fw-semibold">
                                                                 <span class="avatar avatar-sm me-2 avatar-rounded">
-                                                                    <img src="../assets/images/faces/8.jpg" alt="img">
+<!--                                                                    <img src="../assets/images/faces/8.jpg" alt="img">-->
                                                                 </span>Mirinda Hers
                           </div>
                         </td>
@@ -431,7 +431,7 @@
                         <td>
                           <div class="d-flex align-items-center fw-semibold">
                                                                 <span class="avatar avatar-sm me-2 avatar-rounded">
-                                                                    <img src="../assets/images/faces/9.jpg" alt="img">
+<!--                                                                    <img src="../assets/images/faces/9.jpg" alt="img">-->
                                                                 </span>Jacob Smith
                           </div>
                         </td>

@@ -4,13 +4,23 @@ export const useUsers = () => {
   const users = ref([])
   const formData = ref([])
   const user = ref(null)
-  const loading = ref(false)
+  const loadingUsers = ref(false)
   const errorUser = ref(null)
   const page = ref(1)
+  const role=ref(null)
   const perPage = ref(15)
+  const currentPage = ref(1)
+  const pagination = ref({
+    meta: {
+      current_page: 1,
+      last_page: 1,
+    },
+    links: {}
+  })
+  const xsrfToken = useCookie('XSRF-TOKEN').value
 
   const getUsers = async (params = {}) => {
-    loading.value = true
+    loadingUsers.value = true
     try {
       const queryParams = new URLSearchParams({
         page: params.page || 1,
@@ -26,7 +36,7 @@ export const useUsers = () => {
       console.error('Error fetching users:', error)
       throw error
     } finally {
-      loading.value = false
+      loadingUsers.value = false
     }
   }
 
@@ -43,78 +53,103 @@ export const useUsers = () => {
     }
   }
 
-  const createUser = async (payload, errors=null) => {
-    const { data, error } = await useFetch('/users', {
-      method: 'POST',
-      body: payload,
-      baseURL: config.public.apiBase,
-      headers: {
-        'Accept': 'application/json',
-      },
-    })
-    Object.keys(errors).forEach(key => delete errors[key])
-
-    if (error.value) {
-      const allErrors = error.value?.data?.errors
-      if (allErrors && typeof allErrors === 'object') {
-        for (const field in allErrors) {
-          if (Array.isArray(allErrors[field])) {
-            errors[field] = allErrors[field][0]
-          }
-        }
-
-      } else {
-        errors.general = error.value?.data?.message || 'خطایی رخ داده است'
+  const createUser = async (payload, errors = null) => {
+    try {
+      const { data, error } = await useFetch('/users', {
+        method: 'POST',
+        body: payload,
+        baseURL: config.public.apiBase,
+        credentials: 'include',
+        headers: {
+          'X-XSRF-TOKEN': decodeURIComponent(xsrfToken),
+          Accept: 'application/json',
+        },
+      })
+      if (errors) {
+        Object.keys(errors).forEach(key => delete errors[key])
       }
-      return  false
-    } else {
+      if (error.value) {
+        const allErrors = error.value?.data?.errors
+        if (allErrors && typeof allErrors === 'object') {
+          for (const field in allErrors) {
+            if (Array.isArray(allErrors[field])) {
+              errors[field] = allErrors[field][0]
+            }
+          }
+        } else {
+          errors.general = error.value?.data?.message || 'خطایی رخ داده است'
+        }
+        return false
+      } else {
+        nuxtApp.$toast({
+          title: 'Success!',
+          message: 'User created successfully.',
+          type: 'success',
+          duration: 3000,
+        })
+        return true
+      }
+    } catch (e) {
+      if (errors) errors.general = 'خطای غیرمنتظره رخ داده است'
+      console.error('createUser error:', e)
       nuxtApp.$toast({
-        title: 'Success!',
-        message: 'User created successfully.',
-        type: 'success',
+        title: 'Error!',
+        message: 'Failed to create the user.',
+        type: 'error',
         duration: 3000,
       })
-      return  true
+      return false
     }
   }
 
   const updateUser = async (id, payload, errors = null) => {
-    const xsrfToken = useCookie('XSRF-TOKEN').value
-    const { data, error } = await useFetch(`/users/${id}`, {
-      method: 'POST',
-      baseURL: config.public.apiBase,
-      credentials: 'include',
-      headers: {
-        'X-XSRF-TOKEN': decodeURIComponent(xsrfToken),
-        'X-HTTP-Method-Override': 'PUT',
-        Accept: 'application/json'
-      },
-      body: payload,
-    })
+    try {
+      const {data, error} = await useFetch(`/users/${id}`, {
+        method: 'POST',
+        baseURL: config.public.apiBase,
+        credentials: 'include',
+        headers: {
+          'X-XSRF-TOKEN': decodeURIComponent(xsrfToken),
+          'X-HTTP-Method-Override': 'PUT',
+          Accept: 'application/json'
+        },
+        body: payload,
+      })
 
-    if (errors && typeof errors === 'object') {
-      Object.keys(errors).forEach(key => delete errors[key])
-    }
-    if (error.value) {
-      const allErrors = error.value?.data?.errors
-      if (allErrors && typeof allErrors === 'object') {
-        for (const field in allErrors) {
-          if (Array.isArray(allErrors[field])) {
-            errors[field] = allErrors[field][0]
-          }
-        }
-      } else {
-        errors.general = error.value?.data?.message || 'خطایی رخ داده است'
+      if (errors && typeof errors === 'object') {
+        Object.keys(errors).forEach(key => delete errors[key])
       }
-      return false
-    } else {
+      if (error.value) {
+        const allErrors = error.value?.data?.errors
+        if (allErrors && typeof allErrors === 'object') {
+          for (const field in allErrors) {
+            if (Array.isArray(allErrors[field])) {
+              errors[field] = allErrors[field][0]
+            }
+          }
+        } else {
+          errors.general = error.value?.data?.message || 'خطایی رخ داده است'
+        }
+        return false
+      } else {
+        nuxtApp.$toast({
+          title: 'Success!',
+          message: 'User updated successfully.',
+          type: 'success',
+          duration: 3000,
+        })
+        return true
+      }
+    }catch (e) {
+      if (errors) errors.general = 'خطای غیرمنتظره رخ داده است'
+      console.error('createUser error:', e)
       nuxtApp.$toast({
-        title: 'Success!',
-        message: 'User updated successfully.',
-        type: 'success',
+        title: 'Error!',
+        message: 'Failed to create the user.',
+        type: 'error',
         duration: 3000,
       })
-      return true
+      return false
     }
   }
 
@@ -129,14 +164,12 @@ export const useUsers = () => {
           Accept: 'application/json'
         }
       })
-
-      nuxtApp.$toast?.({
+      nuxtApp.$toast({
         title: 'Success!',
-        message: 'User deleted.',
-        type: 'success'
+        message: 'User moved to trash.',
+        type: 'success',
+        duration: 3000
       })
-
-      reloadUsers()
     } catch (error) {
       console.error('Error deleting user:', error)
       nuxtApp.$toast?.({
@@ -270,8 +303,8 @@ export const useUsers = () => {
     }
   }
 
-  const getUserRole = async (roleId, filters = {}) => {
-    loading.value = true
+  const getUsersWithRoleName = async (roleName,filters = {}) => {
+    loadingUsers.value = true
     try {
       const queryParams = new URLSearchParams({
         page: page.value,
@@ -279,8 +312,11 @@ export const useUsers = () => {
       })
       const xsrfToken = useCookie('XSRF-TOKEN').value
 
-      const response = await $fetch(`/users/user-role/${roleId}`, {
+        const response = await $fetch(`/users/user-role/${roleName}`, {
         method: 'POST',
+        params: {
+          page: currentPage.value,
+        },
         baseURL: config.public.apiBase,
         credentials: 'include',
         headers: {
@@ -288,18 +324,30 @@ export const useUsers = () => {
           Accept: 'application/json'
         }
       })
-      users.value = response
+      users.value = response.users
+      role.value = response.role
+
+      pagination.value = {
+        meta: users.value.meta,
+        links: users.value.links
+      }
+
       return response
     } catch (error) {
       console.error('Error fetching users by role:', error)
       throw error
     } finally {
-      loading.value = false
+      loadingUsers.value = false
     }
   }
+  function goToPage(n) {
+    const last = pagination.value.meta.last_page
+    if (n < 1 || n > last) return
 
+    currentPage.value = n
+    getUsersWithRoleName(role.value.name)
+  }
   const loadUserFormData = async () => {
-    loading.value = true
     try {
       const response = await $fetch(`/users/user-form-data`, {
         baseURL: config.public.apiBase,
@@ -312,8 +360,6 @@ export const useUsers = () => {
     } catch (error) {
       console.error('Error fetching formData :', error)
       throw error
-    } finally {
-      loading.value = false
     }
   }
 
@@ -322,12 +368,16 @@ export const useUsers = () => {
   }
   return {
     users,
+    role,
     user,
     formData,
-    loading,
+    loadingUsers,
     errorUser,
     page,
     perPage,
+    pagination,
+    currentPage,
+    goToPage,
     getUsers,
     loadUserFormData,
     getUserById,
@@ -339,7 +389,7 @@ export const useUsers = () => {
     toggleUserStatus,
     searchUsers,
     getTrashedUsers,
-    getUserRole,
+    getUsersWithRoleName,
     setPage,
   }
 }
