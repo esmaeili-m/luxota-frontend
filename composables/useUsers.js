@@ -312,7 +312,7 @@ export const useUsers = () => {
       })
       const xsrfToken = useCookie('XSRF-TOKEN').value
 
-        const response = await $fetch(`/users/user-role/${roleName}`, {
+        const response = await $fetch(`/users/user-role/${roleName}?${queryParams}`, {
         method: 'POST',
         params: {
           page: currentPage.value,

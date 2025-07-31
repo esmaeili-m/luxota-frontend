@@ -624,7 +624,7 @@ const choicesInstances = {}
 
 onMounted(async () => {
   loadingUsers.value = true
-  await getUsersWithRoleName(route.params.role)
+  await getUsersWithRoleName(route.params.role,searchQuery)
   await nextTick()
   loadSelectChoice()
   loadingUsers.value = false
@@ -674,9 +674,8 @@ function previewImage(event) {
 
 async function search(){
   isSearching.value= true
-  searchQuery.role_id =role.id
   try {
-    await searchUsers(searchQuery); // صبر کن تا عملیات جست‌وجو تموم بشه
+    await getUsersWithRoleName(route.params.role,searchQuery)
   } catch (error) {
     console.error("Search failed:", error);
   } finally {
