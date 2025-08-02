@@ -1,5 +1,4 @@
 export default defineNuxtRouteMiddleware((to, from) => {
-  console.log('auth middleware running')
 
   const { isAuthenticated } = useAuth()
   

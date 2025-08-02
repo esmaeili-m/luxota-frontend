@@ -571,7 +571,6 @@ const router = useRouter()
 
 const handleLogout = async () => {
   await logout()
-  authStore.logout()
   await router.push('/login')
 }
 </script>

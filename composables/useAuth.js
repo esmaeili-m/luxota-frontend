@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue'
-import { useAuthStore } from '~/stores/auth' // فرض بر اینه از Pinia یا مشابه داری
+import { useAuthStore } from '~/stores/auth' // فرض بر Pinia
 
 export const useAuth = () => {
   const authStore = useAuthStore()
@@ -9,7 +9,6 @@ export const useAuth = () => {
 
   const user = computed(() => authStore.user)
   const isAuthenticated = computed(() => authStore.isAuthenticated)
-  const token = computed(() => authStore.token)
 
   // گرفتن کوکی CSRF از لاراول
   const getCsrfCookie = async () => {
@@ -22,8 +21,11 @@ export const useAuth = () => {
   const login = async (credentials) => {
     loading.value = true
     error.value = null
-    const xsrfToken = useCookie('XSRF-TOKEN').value
+
     try {
+      await getCsrfCookie()
+      const xsrfToken = useCookie('XSRF-TOKEN').value
+      if (!xsrfToken) throw new Error('XSRF token not found')
 
       const response = await $fetch('/auth/login', {
         baseURL: config.public.apiBase,
@@ -35,13 +37,14 @@ export const useAuth = () => {
           Accept: 'application/json'
         }
       })
+      console.log(response)
 
-      // اطلاعات توکن و کاربر را ذخیره کن
-      authStore.setAuth(response.access_token, response.user)
+      // فقط کاربر رو ست می‌کنیم، توکن نداریم
+      authStore.setUser(response.user)
+
       return response
-
     } catch (err) {
-      error.value = err.data?.message || 'Login failed'
+      error.value = err.data?.message || err.message || 'Login failed'
       throw err
     } finally {
       loading.value = false
@@ -54,24 +57,23 @@ export const useAuth = () => {
     error.value = null
 
     try {
-      // ابتدا کوکی CSRF را بگیر
       await getCsrfCookie()
+      const xsrfToken = useCookie('XSRF-TOKEN').value
+      if (!xsrfToken) throw new Error('XSRF token not found')
 
-      // درخواست لاگ‌اوت را بفرست
       await $fetch('/auth/logout', {
         baseURL: config.public.apiBase,
         method: 'POST',
         credentials: 'include',
         headers: {
+          'X-XSRF-TOKEN': decodeURIComponent(xsrfToken),
           Accept: 'application/json'
         }
       })
 
-      // پاک‌کردن داده‌های کاربر و توکن
       authStore.clearAuth()
-
     } catch (err) {
-      error.value = err.data?.message || 'Logout failed'
+      error.value = err.data?.message || err.message || 'Logout failed'
       console.error(err)
     } finally {
       loading.value = false
@@ -88,14 +90,12 @@ export const useAuth = () => {
           Accept: 'application/json'
         }
       })
+
       authStore.setUser(user)
-      console.log('a')
 
       return user
     } catch (err) {
       authStore.clearAuth()
-      console.log('b')
-
       return null
     }
   }
@@ -103,7 +103,6 @@ export const useAuth = () => {
   return {
     user,
     isAuthenticated,
-    token,
     loading,
     error,
     login,

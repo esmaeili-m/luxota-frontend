@@ -38,9 +38,8 @@
               <span class="side-menu__label">Products</span>
             </NuxtLink>
           </li>
-
           <li class="slide__category"><span class="category-name">Users</span></li>
-          <li class="slide has-sub" :class="{ 'open': isDropdownOpen }">
+          <li v-if="auth?.user?.permissions.includes('user.index')"  class="slide has-sub" :class="{ 'open': isDropdownOpen }">
             <a href="#" class="side-menu__item" @click.prevent="toggleDropdown">
               <i class="bx bx-home side-menu__icon"></i>
               <span class="side-menu__label">
@@ -137,6 +136,8 @@
 
 <script setup>
 import {useRoute} from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+const auth = useAuthStore()
 import {ref, computed, onMounted, watch} from 'vue'
 
 const roles = ref([])
