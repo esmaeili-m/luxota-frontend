@@ -41,9 +41,17 @@ export const useUsers = () => {
   }
 
   const getUserById = async (id) => {
+    const xsrfToken = useCookie('XSRF-TOKEN').value
+
     try {
       const response = await $fetch(`/users/${id}`, {
         baseURL: config.public.apiBase,
+        headers: {
+          'X-XSRF-TOKEN': decodeURIComponent(xsrfToken),
+          Accept: 'application/json',
+        },
+        credentials: 'include',
+
       })
       user.value = response
       return response
@@ -349,9 +357,13 @@ export const useUsers = () => {
   }
   const loadUserFormData = async () => {
     try {
+      const xsrfToken = useCookie('XSRF-TOKEN').value
+
       const response = await $fetch(`/users/user-form-data`, {
         baseURL: config.public.apiBase,
+        credentials: 'include',
         headers: {
+          'X-XSRF-TOKEN': decodeURIComponent(xsrfToken),
           Accept: 'application/json'
         }
       })

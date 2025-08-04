@@ -109,7 +109,7 @@
                   <td>{{ user.phone }}</td>
 
                   <td>
-                    <span
+                    <span v-if="auth?.user?.user?.id !== user.id"
                         class="badge badge-lg rounded-pill cursor-pointer"
                         :class="[
                         user.status === 1 ? 'bg-success-transparent' : 'bg-danger-transparent',
@@ -144,10 +144,12 @@
                         <li>
                           <hr class="dropdown-divider">
                         </li>
-                        <li><a v-if="auth.user.permissions.includes('user.delete')" data-bs-toggle="modal" data-bs-effect="effect-flip-vertical" data-bs-target="#delete"
-                               @click="setUser(user.id)" class="dropdown-item modal-effect" href="#delete"
-                               :class="{ 'disabled': isLoadingId === user.id }"
-                               :style="{ pointerEvents: isLoadingId === user.id ? 'none' : 'auto' }">Delete</a></li>
+                        <li v-if="auth?.user?.user?.id !== user.id">
+                          <a v-if="auth.user.permissions.includes('user.delete')" data-bs-toggle="modal" data-bs-effect="effect-flip-vertical" data-bs-target="#delete"
+                                                               @click="setUser(user.id)" class="dropdown-item modal-effect" href="#delete"
+                                                               :class="{ 'disabled': isLoadingId === user.id }"
+                                                               :style="{ pointerEvents: isLoadingId === user.id ? 'none' : 'auto' }">Delete</a>
+                        </li>
                       </ul>
                     </div>
                   </td>
@@ -551,6 +553,7 @@ const auth = useAuthStore()
 const hasPermission = computed(() => {
   return auth.user?.permissions?.includes('user.index') || false
 })
+
 
 
 const nuxtApp = useNuxtApp()

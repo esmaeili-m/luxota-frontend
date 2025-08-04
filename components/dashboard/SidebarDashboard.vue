@@ -114,6 +114,12 @@
               <span class="side-menu__label">Referrers</span>
             </NuxtLink>
           </li>
+          <li class="slide" :class="{ 'active': isActive('/dashboard/activityLog') }">
+            <NuxtLink to="/dashboard/activityLog" class="side-menu__item">
+              <i class="bx bx-history side-menu__icon"></i>
+              <span class="side-menu__label">Activity Log</span>
+            </NuxtLink>
+          </li>
 
           <!-- Start::slide -->
 
