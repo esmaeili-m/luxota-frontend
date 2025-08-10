@@ -72,7 +72,7 @@
               </li>
             </ul>
           </li>
-          <li class="slide " :class="{ 'active': isActive('/dashboard/roles') }">
+          <li v-if="auth?.user?.permissions.includes('role.index')" class="slide " :class="{ 'active': isActive('/dashboard/roles') }">
             <NuxtLink to="/dashboard/roles" class="side-menu__item">
               <i class="bx bx-user-check side-menu__icon"></i>
               <span class="side-menu__label">Roles</span>
@@ -145,6 +145,7 @@ import {useRoute} from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 const auth = useAuthStore()
 import {ref, computed, onMounted, watch} from 'vue'
+const xsrfToken = useCookie('XSRF-TOKEN')
 
 const roles = ref([])
 const isDropdownOpen = ref(false)
@@ -161,6 +162,12 @@ async function get_roles() {
   try {
     const data = await $fetch('/roles/all', {
       baseURL: config.public.apiBase,
+      credentials: 'include',
+      headers :{
+        'X-XSRF-TOKEN': decodeURIComponent(xsrfToken.value || ''),
+        Accept: 'application/json',
+
+      }
     })
     roles.value = data.data
   } catch (error) {

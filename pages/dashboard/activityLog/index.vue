@@ -55,7 +55,7 @@
                       data-bs-toggle="modal"
                       data-bs-target="#logModal"
                   >
-                    Data
+                    Details
                   </button>
                 </td>
               </tr>

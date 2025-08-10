@@ -109,7 +109,7 @@
                   <td>{{ user.phone }}</td>
 
                   <td>
-                    <span v-if="auth?.user?.user?.id !== user.id"
+                    <span v-if="isNotCurrentUser(user)"
                         class="badge badge-lg rounded-pill cursor-pointer"
                         :class="[
                         user.status === 1 ? 'bg-success-transparent' : 'bg-danger-transparent',
@@ -144,7 +144,7 @@
                         <li>
                           <hr class="dropdown-divider">
                         </li>
-                        <li v-if="auth?.user?.user?.id !== user.id">
+                        <li v-if="isNotCurrentUser(user)">
                           <a v-if="auth.user.permissions.includes('user.delete')" data-bs-toggle="modal" data-bs-effect="effect-flip-vertical" data-bs-target="#delete"
                                                                @click="setUser(user.id)" class="dropdown-item modal-effect" href="#delete"
                                                                :class="{ 'disabled': isLoadingId === user.id }"
@@ -555,7 +555,6 @@ const hasPermission = computed(() => {
 })
 
 
-
 const nuxtApp = useNuxtApp()
 const route = useRoute()
 const router = useRouter()
@@ -633,18 +632,25 @@ const {users, role, user, loadingUsers, errorUser,formData, pagination,
   currentPage, deleteUser,  loadUserFormData, getUsersWithRoleName, getUserById,goToPage, createUser, updateUser, page, perPage, setPage,searchUsers} = useUsers()
 const createForm = ref({})
 const choicesInstances = {}
-
-watch(hasPermission, async (val) => {
-  if (val) {
-    loadingUsers.value = true
-    await getUsersWithRoleName(route.params.role, searchQuery)
-    await nextTick()
-    loadSelectChoice()
-    loadingUsers.value = false
-  }
-}, { immediate: true })
+watch(
+    () => auth.user,
+    async (user) => {
+      if (user && hasPermission.value) {
+        loadingUsers.value = true
+        await getUsersWithRoleName(route.params.role, searchQuery)
+        await nextTick()
+        loadSelectChoice()
+        loadingUsers.value = false
+      }
+    },
+    { immediate: true }
+)
+function isNotCurrentUser (user) {
+  const currentUserId = auth?.user?.user?.id;
+  return currentUserId && currentUserId !== user.id;
+}
 function createFormInputs(){
-  if (role.value.name === 'Customer') {
+  if (role.value.id === 1) {
     createForm.value = {
       name: true,
       email: true,
