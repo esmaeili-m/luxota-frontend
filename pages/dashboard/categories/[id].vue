@@ -3,11 +3,12 @@
   <div v-if="!auth.user"></div>
   <div v-else-if="hasPermission">
     <div class="d-md-flex d-block align-items-center justify-content-between my-4 page-header-breadcrumb">
-      <h1 class="page-title fw-semibold fs-18 mb-0">Categories</h1>
+      <h1 class="page-title fw-semibold fs-18 mb-0">SubCategory</h1>
       <div class="ms-md-1 ms-0">
         <nav>
           <ol class="breadcrumb mb-0">
-            <li class="breadcrumb-item active" aria-current="page">Categories</li>
+            <li class="breadcrumb-item"><nuxt-link to="/dashboard/categories">Categories</nuxt-link></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ categories?.category?.title?.en }}</li>
           </ol>
         </nav>
       </div>
@@ -17,7 +18,7 @@
         <div class="card custom-card">
           <div class="card-header justify-content-between">
             <div class="card-title">
-              Categories
+              {{ categories?.category?.title?.en }}
             </div>
             <div class="prism-toggle">
               <button v-if="auth.user.permissions.includes('category.create')" @click="fetchLanguages"
@@ -79,7 +80,7 @@
                         <span class="visually-hidden">Toggle Dropdown</span>
                       </button>
                       <ul class="dropdown-menu">
-                        <li v-if="auth.user.permissions.includes('category.index')"><nuxt-link :to="`/dashboard/categories/${category.id}`" class="dropdown-item" href="javascript:void(0);">SubCategory </nuxt-link></li>
+                        <li v-if="auth.user.permissions.includes('category.index')"><a class="dropdown-item" href="javascript:void(0);">SubCategory </a></li>
                         <li>
                           <hr class="dropdown-divider">
                         </li>
@@ -303,7 +304,9 @@
 </template>
 <script setup>
 import {ref, reactive } from 'vue'
+import {useRoute} from "vue-router";
 const nuxtApp = useNuxtApp()
+const route = useRoute()
 const auth = useAuthStore()
 const config = useRuntimeConfig()
 const xsrfToken = useCookie('XSRF-TOKEN').value
@@ -329,7 +332,7 @@ const createCategory = ref(false)
 const hasPermission = computed(() => {
   return auth.user?.permissions?.includes('category.index') || false
 })
-const { data: categories, error, pending: isLoadingCategories, refresh: fetchCategories, clear } = useFetch(() => `/categories?page=${page.value}`, {
+const { data: categories, error, pending: isLoadingCategories, refresh: fetchCategories, clear } = useFetch(() => `/categories/sub-category/${route.params.id}?page=${page.value}`, {
   baseURL: config.public.apiBase,
   credentials: 'include',
   headers :{
@@ -337,7 +340,7 @@ const { data: categories, error, pending: isLoadingCategories, refresh: fetchCat
     Accept: 'application/json',
   }
 })
-
+console.log(categories);
 function setCategory(id) {
   selectedCategoryId.value = id
 }
@@ -489,14 +492,14 @@ async function handleSubmit() {
       })
 
     } else {
-        response= await useFetch('/categories', {
+      response= await useFetch('/categories', {
         method: 'POST',
         body: payload,
         baseURL: config.public.apiBase,
         credentials: 'include',
         headers: {
-            'Accept': 'application/json',
-            'X-XSRF-TOKEN': decodeURIComponent(xsrfToken || ''),
+          'Accept': 'application/json',
+          'X-XSRF-TOKEN': decodeURIComponent(xsrfToken || ''),
 
         }
       })
