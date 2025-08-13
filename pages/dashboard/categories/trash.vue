@@ -1,5 +1,8 @@
 <!-- pages/index.vue -->
 <template>
+  <div v-if="!auth.user"></div>
+  <div v-else-if="hasPermission">
+
   <div class="d-md-flex d-block align-items-center justify-content-between my-4 page-header-breadcrumb">
     <h1 class="page-title fw-semibold fs-18 mb-0">Trashed Categories</h1>
     <div class="ms-md-1 ms-0">
@@ -153,6 +156,12 @@
       </div>
     </div>
   </div>
+  </div>
+  <div v-else class="alert alert-danger mt-3 text-center">
+    <slot name="fallback">
+      🚫 You do not have permission to view this section.
+    </slot>
+  </div>
 
 </template>
 <script setup>
@@ -160,11 +169,17 @@ definePageMeta({
   layout: 'dashboard',
 })
 const nuxtApp = useNuxtApp()
+const auth = useAuthStore()
+
+const xsrfToken = useCookie('XSRF-TOKEN').value
 
 const config = useRuntimeConfig()
 const selectedCategoryId = ref(null)
 const isDeleting = ref(false)
 const isLoadingId = ref(false)
+const hasPermission = computed(() => {
+  return auth.user?.permissions?.includes('category.trash') || false
+})
 function setCategory(id) {
   selectedCategoryId.value = id
 }
@@ -173,9 +188,11 @@ const { data: categories, pending: isLoadingCategories, error, refresh: reloadCa
     () =>
         $fetch('/categories/trash', {
           baseURL: config.public.apiBase,
-          headers: {
+          credentials: 'include',
+          headers :{
+            'X-XSRF-TOKEN': decodeURIComponent(xsrfToken || ''),
             Accept: 'application/json',
-          },
+          }
         })
 )
 
@@ -187,7 +204,11 @@ async function confirmDeleteCategory() {
     const { error } = await useFetch(`/categories/force-delete/${selectedCategoryId.value}`, {
       method: 'DELETE',
       baseURL: config.public.apiBase,
-      headers: { Accept: 'application/json' },
+      credentials: 'include',
+      headers :{
+        'X-XSRF-TOKEN': decodeURIComponent(xsrfToken || ''),
+        Accept: 'application/json',
+      }
     })
     if (error.value) {
       alert('Failed to delete category.')
@@ -219,6 +240,11 @@ async function restoreCategory(categoryId) {
     await $fetch(`/categories/${categoryId}/restore`, {
       method: 'POST',
       baseURL: config.public.apiBase,
+      credentials: 'include',
+      headers :{
+        'X-XSRF-TOKEN': decodeURIComponent(xsrfToken || ''),
+        Accept: 'application/json',
+      }
     });
     nuxtApp.$toast({
       title: 'success!',

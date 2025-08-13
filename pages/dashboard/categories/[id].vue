@@ -21,7 +21,7 @@
               {{ categories?.category?.title?.en }}
             </div>
             <div class="prism-toggle">
-              <button v-if="auth.user.permissions.includes('category.create')" @click="fetchLanguages"
+              <button v-if="auth.user.permissions.includes('category.create')" @click="openModal()"
                       class="btn btn-sm btn-success-light mx-1 modal-effect"
                       data-bs-target="#create" data-bs-effect="effect-flip-vertical" data-bs-toggle="modal" href="#create">
                 Create Category<i class="ri-add-line ms-2 d-inline-block align-middle"></i>
@@ -36,7 +36,7 @@
                 <span class="visually-hidden">Loading</span>
               </div>
             </div>
-            <div v-else-if="!categories?.data || categories.data.length === 0">
+            <div  v-else-if="!categories?.children || categories?.children?.data?.length === 0">
               <EmptyState />
             </div>
             <div v-else class="table-responsive">
@@ -50,7 +50,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr v-for="(category, index) in categories?.data" :key="category.id">
+                <tr v-for="(category, index) in categories?.children?.data" :key="category.id">
                   <td>{{ (page - 1) * perPage + index + 1 }}</td>
                   <td>{{ category.title.en }}</td>
                   <td>
@@ -80,11 +80,7 @@
                         <span class="visually-hidden">Toggle Dropdown</span>
                       </button>
                       <ul class="dropdown-menu">
-                        <li v-if="auth.user.permissions.includes('category.index')"><a class="dropdown-item" href="javascript:void(0);">SubCategory </a></li>
-                        <li>
-                          <hr class="dropdown-divider">
-                        </li>
-                        <li v-if="auth.user.permissions.includes('category.price')"><a class="dropdown-item" href="javascript:void(0);">Price Overview</a></li>
+                        <li v-if="auth.user.permissions.includes('product.index')"><nuxt-link :to="{ path: '/dashboard/products', query: { category: route.params.id } }" class="dropdown-item" href="javascript:void(0);">Product </nuxt-link></li>
                         <li>
                           <hr class="dropdown-divider">
                         </li>
@@ -160,7 +156,9 @@
       <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="createCategoryLabel">Create Category</h5>
+            <h5 class="modal-title" id="createCategoryLabel">
+              {{ isEditMode ? 'Update Category' : `Create Category` }}
+            </h5>
             <button
                 type="button"
                 class="btn-close"
@@ -303,7 +301,7 @@
   </div>
 </template>
 <script setup>
-import {ref, reactive } from 'vue'
+import {ref,watch, reactive } from 'vue'
 import {useRoute} from "vue-router";
 const nuxtApp = useNuxtApp()
 const route = useRoute()
@@ -315,8 +313,10 @@ definePageMeta({
 })
 const isLoadingModalData = ref(false)
 const imagePreview = ref(null)
+const isLoadingCategories = ref(false)
 const page = ref(1)
 const perPage = ref(15)
+const error = reactive({})
 const languages = ref(null)
 const isLoadingId = ref(null)
 const formData = reactive({
@@ -324,6 +324,7 @@ const formData = reactive({
   subtitles: {},
   order: '',
   image: null,
+  parent_id: route.params.id,
 })
 const errors = reactive({})
 const selectedCategoryId = ref(null)
@@ -332,15 +333,28 @@ const createCategory = ref(false)
 const hasPermission = computed(() => {
   return auth.user?.permissions?.includes('category.index') || false
 })
-const { data: categories, error, pending: isLoadingCategories, refresh: fetchCategories, clear } = useFetch(() => `/categories/sub-category/${route.params.id}?page=${page.value}`, {
-  baseURL: config.public.apiBase,
-  credentials: 'include',
-  headers :{
-    'X-XSRF-TOKEN': decodeURIComponent(xsrfToken || ''),
-    Accept: 'application/json',
-  }
-})
-console.log(categories);
+
+const categories = ref(null);
+async function fetchCategories(id=route.params.id, p=page.value) {
+  isLoadingCategories.value=true;
+  if (!id) return;
+  const res = await $fetch(`/categories/sub-category/${id}`, {
+    baseURL: config.public.apiBase,
+    params: { page: p },
+    credentials: 'include',
+    headers :{
+      'X-XSRF-TOKEN': decodeURIComponent(xsrfToken || ''),
+      Accept: 'application/json',
+    }
+  });
+  categories.value = res;
+  isLoadingCategories.value=false;
+
+}
+watch([() => route.params.id, () => page.value], ([id, p]) => {
+  fetchCategories(id, p);
+}, { immediate: true });
+
 function setCategory(id) {
   selectedCategoryId.value = id
 }
@@ -351,7 +365,8 @@ function closeModalAndResetForm() {
   formData.image = null
   Object.assign(formData.titles, {})
   Object.assign(formData.subtitles, {})
-  formData.order = ''
+  formData.order = '';
+  createCategory.value=false
   imagePreview.value = null
   Object.keys(formData.titles).forEach(key => {
     formData.titles[key] = ''
@@ -464,18 +479,19 @@ async function handleSubmit() {
   Object.keys(title).forEach(lang => {
     payload.append(`title[${lang}]`, title[lang])
   })
-
   Object.keys(subtitle).forEach(lang => {
     payload.append(`subtitle[${lang}]`, subtitle[lang])
   })
   if (formData.order) {
     payload.append('order', formData.order);
   }
+  if (formData.parent_id) {
+    payload.append('parent_id', formData.parent_id);
+  }
   if (formData.image instanceof File) {
     payload.append('image', formData.image);
   }
-  var response
-
+  var response;
   try {
     if (isEditMode.value && formData.id) {
       response= await $fetch(`/categories/${formData.id}`, {
@@ -490,7 +506,6 @@ async function handleSubmit() {
 
         }
       })
-
     } else {
       response= await useFetch('/categories', {
         method: 'POST',
@@ -504,7 +519,7 @@ async function handleSubmit() {
         }
       })
     }
-    if (response.error.value) {
+    if (response?.error?.value) {
       const allErrors = response.error.value?.data?.errors
       if (allErrors && typeof allErrors === 'object') {
         for (const field in allErrors) {
@@ -526,7 +541,7 @@ async function handleSubmit() {
     }
     nuxtApp.$toast({
       title: error.value ? 'Error!' : 'Success!',
-      message: error.value?.message || (error.value ? 'Something went wrong.' : `Role ${isEditMode.value ? 'updated' : 'created'} successfully.`),
+      message: error.value?.message || (error.value ? 'Something went wrong.' : `Category ${isEditMode.value ? 'updated' : 'created'} successfully.`),
       type: error.value ? 'error' : 'success',
       duration: 3000
     })
@@ -556,6 +571,7 @@ function resetData(){
 const isEditMode = ref(false)
 const currentCategory = ref(null)
 function openModal(category = null) {
+
   fetchLanguages()
   if (category) {
     formData.id = category.id

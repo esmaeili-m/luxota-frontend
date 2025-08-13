@@ -501,7 +501,7 @@ async function handleSubmit() {
         }
       })
     }
-    if (response.error.value) {
+    if (response?.error?.value) {
       const allErrors = response.error.value?.data?.errors
       if (allErrors && typeof allErrors === 'object') {
         for (const field in allErrors) {
