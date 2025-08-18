@@ -58,12 +58,11 @@
                       <span class="visually-hidden">Toggle Dropdown</span>
                     </button>
                     <ul class="dropdown-menu">
-                      <li><a
-                          :disabled="isLoadingId === category.id"
+                      <li v-if="auth.user.permissions.includes('category.restore')"><a
                           class="dropdown-item modal-effect" @click="restoreCategory(category.id)"
-                          :class="{ 'opacity-50': isDeleting }"
-                          href="javascript:void(0);">{{ isDeleting ? 'Loading...' : 'Restore' }}</a></li>
-                      <li><a data-bs-effect="effect-flip-vertical"  data-bs-toggle="modal" data-bs-target="#delete" class="dropdown-item modal-effect" @click="setCategory(category.id)" href="javascript:void(0);">Delete</a></li>
+                          href="javascript:void(0);">Restore
+                      </a></li>
+                      <li v-if="auth.user.permissions.includes('category.delete')"><a data-bs-effect="effect-flip-vertical"  data-bs-toggle="modal" data-bs-target="#delete" class="dropdown-item modal-effect" @click="setCategory(category.id)" href="javascript:void(0);">Delete</a></li>
 
 
                     </ul>

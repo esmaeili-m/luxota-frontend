@@ -363,7 +363,7 @@ async function handleSubmit() {
         },
       })
     }
-    if (response.error.value) {
+    if (response?.error?.value) {
         const allErrors = response.error.value?.data?.errors
         if (allErrors && typeof allErrors === 'object') {
           for (const field in allErrors) {
@@ -385,7 +385,7 @@ async function handleSubmit() {
     }
     nuxtApp.$toast({
       title: error.value ? 'Error!' : 'Success!',
-      message: error.value?.message || (error.value ? 'Something went wrong.' : `Role ${isEditMode.value ? 'updated' : 'created'} successfully.`),
+      message: error.value?.message || (error.value ? 'Something went wrong.' : `Zone ${isEditMode.value ? 'updated' : 'created'} successfully.`),
       type: error.value ? 'error' : 'success',
       duration: 3000
     })
