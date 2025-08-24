@@ -97,7 +97,6 @@
                         <img  :src="user.avatar ? `${config.public.fileBase}/${user.avatar}` : '/dashboard-assets/images/authentication/user.png'"
                               class="rounded"
                               alt="Avatar">
-
                       </div>
                       <div>
                         <div class="fw-semibold">{{ user.name }}</div>

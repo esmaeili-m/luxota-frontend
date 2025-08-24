@@ -43,14 +43,14 @@
             <a href="#" class="side-menu__item" @click.prevent="toggleDropdown">
               <i class="bx bx-home side-menu__icon"></i>
               <span class="side-menu__label">
-        Users
-        <span class="badge bg-warning-transparent ms-2" v-if="!isLoadingRoles">{{ roles?.length }}</span>
-        <span class="badge bg-warning-transparent ms-2" v-else>
-          <div class="spinner-border text-warning spinner-border-sm" role="status">
-              <span class="visually-hidden">Loading...</span>
-          </div>
-        </span>
-      </span>
+                Users
+                <span class="badge bg-warning-transparent ms-2" v-if="!isLoadingRoles">{{ roles?.length }}</span>
+                <span class="badge bg-warning-transparent ms-2" v-else>
+                  <div class="spinner-border text-warning spinner-border-sm" role="status">
+                      <span class="visually-hidden">Loading...</span>
+                  </div>
+                </span>
+              </span>
               <i class="fe fe-chevron-right side-menu__angle" :class="{ 'rotated': isDropdownOpen }"></i>
             </a>
 
@@ -68,6 +68,35 @@
               >
                 <NuxtLink :to="`/dashboard/users/${role.name}`" class="side-menu__item">
                   {{ role.name }}
+                </NuxtLink>
+              </li>
+            </ul>
+          </li>
+          <li v-if="auth?.user?.permissions.includes('user.index')"  class="slide has-sub" :class="{ 'open': isDropdownOpen }">
+            <a href="#" class="side-menu__item" @click.prevent="toggleDropdown">
+              <i class="bx bx-home side-menu__icon"></i>
+              <span class="side-menu__label">
+                Accounting & Finance
+              </span>
+              <i class="fe fe-chevron-right side-menu__angle" :class="{ 'rotated': isDropdownOpen }"></i>
+            </a>
+
+            <ul class="slide-menu child1" :style="{ display: isDropdownOpen ? 'block' : 'none' }"
+                :class="{ 'menu-open': isDropdownOpen }">
+              <li class="slide side-menu__label1">
+                <a href="javascript:void(0)">Users</a>
+              </li>
+
+              <li class="slide"
+                  :class="{ 'active': isActive(`/dashboard/accountingFinance/invoces`) }">
+                <NuxtLink :to="`/dashboard/accountingFinance/invoices`" class="side-menu__item">
+                  Invoices
+                </NuxtLink>
+              </li>
+              <li class="slide"
+                  :class="{ 'active': isActive(`/dashboard/accountingFinance/vouchers`) }">
+                <NuxtLink :to="`/dashboard/accountingFinance/vouchers`" class="side-menu__item">
+                  Vouchers
                 </NuxtLink>
               </li>
             </ul>
