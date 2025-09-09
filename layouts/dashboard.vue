@@ -10,6 +10,7 @@
         </div>
       </div>
     </div>
+    <GlobalToast ref="globalToast" />
   </div>
 </template>
 
@@ -17,16 +18,25 @@
 import SidebarDashboard from '~/components/dashboard/SidebarDashboard.vue'
 import HeaderDashboard from '~/components/dashboard/HeaderDashboard.vue'
 import SettingsDashboard from '~/components/dashboard/SettingsDashboard.vue'
+import GlobalToast from '~/components/GlobalToast.vue'
+const globalToast = ref(null)
+
 definePageMeta({
   middleware: ["auth"]
 })
-import { onMounted } from 'vue'
+import {onMounted, ref} from 'vue'
 import { useAuth } from '~/composables/useAuth'
 
 onMounted(async () => {
   const { isAuthenticated, me } = useAuth()
   if (!isAuthenticated.value) {
     await me()
+  }
+  const nuxtApp = useNuxtApp()
+  if (!nuxtApp.$toast) {
+    nuxtApp.provide('toast', (options) => {
+      globalToast.value?.show(options)
+    })
   }
 })
 useHead({
@@ -43,7 +53,6 @@ useHead({
   link: [
     { rel: 'icon', type: 'image/x-icon', href: '/dashboard-assets/images/brand-logos/favicon.ico' },
     { rel: 'stylesheet', href: '/dashboard-assets/libs/bootstrap/css/bootstrap.min.css' },
-
     { rel: 'stylesheet', href: '/dashboard-assets/css/styles.min.css' },
     { rel: 'stylesheet', href: '/dashboard-assets/css/icons.css' },
     { rel: 'stylesheet', href: '/dashboard-assets/css/custom.css' },

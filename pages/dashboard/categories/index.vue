@@ -346,6 +346,7 @@ function closeModalAndResetForm() {
   const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl)
   modal.hide()
   formData.image = null
+  createCategory.value= false
   Object.assign(formData.titles, {})
   Object.assign(formData.subtitles, {})
   formData.order = ''
@@ -523,7 +524,7 @@ async function handleSubmit() {
     }
     nuxtApp.$toast({
       title: error.value ? 'Error!' : 'Success!',
-      message: error.value?.message || (error.value ? 'Something went wrong.' : `Role ${isEditMode.value ? 'updated' : 'created'} successfully.`),
+      message: error.value?.message || (error.value ? 'Something went wrong.' : `Category ${isEditMode.value ? 'updated' : 'created'} successfully.`),
       type: error.value ? 'error' : 'success',
       duration: 3000
     })

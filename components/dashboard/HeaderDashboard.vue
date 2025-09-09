@@ -10,12 +10,12 @@
         <!-- Start::header-element -->
         <div class="header-element">
           <div class="horizontal-logo">
-            <a href="index.html" class="header-logo">
-              <img src="/dashboard-assets/images/brand-logos/desktop-logo.png" alt="logo" class="desktop-logo">
-              <img src="/dashboard-assets/images/brand-logos/toggle-logo.png" alt="logo" class="toggle-logo">
-              <img src="/dashboard-assets/images/brand-logos/desktop-dark.png" alt="logo" class="desktop-dark">
-              <img src="/dashboard-assets/images/brand-logos/toggle-dark.png" alt="logo" class="toggle-dark">
-            </a>
+            <nuxt-link to="/" class="header-logo">
+              <img src="/market-assets/images/logo/Luxota-Market.png" alt="logo" class="desktop-logo">
+              <img src="/market-assets/images/logo/Luxota-Market.png" alt="logo" class="toggle-logo">
+              <img src="/market-assets/images/logo/Luxota-Market.png" alt="logo" class="desktop-dark">
+              <img src="/market-assets/images/logo/Luxota-Market.png" alt="logo" class="toggle-dark">
+            </nuxt-link>
           </div>
         </div>
         <!-- End::header-element -->
