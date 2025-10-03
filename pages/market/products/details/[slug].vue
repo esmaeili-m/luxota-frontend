@@ -45,15 +45,15 @@
                </footer>
                <p class="text-gray-500 dark:text-gray-400">{{comment?.title}}</p>
                <p class="text-gray-500 dark:text-gray-400 mt-2">{{comment?.description}}</p>
-               <div class="flex items-center mt-4 space-x-4">
-                 <button type="button"
-                         class="flex items-center text-sm text-gray-500 hover:underline dark:text-gray-400 font-medium">
-                   <svg class="mr-1.5 w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 18">
-                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5h5M5 8h2m6-3h2m-5 3h6m2-7H2a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h3v5l5-5h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1Z"/>
-                   </svg>
-                   Reply
-                 </button>
-               </div>
+<!--               <div class="flex items-center mt-4 space-x-4">-->
+<!--                 <button type="button"-->
+<!--                         class="flex items-center text-sm text-gray-500 hover:underline dark:text-gray-400 font-medium">-->
+<!--                   <svg class="mr-1.5 w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 18">-->
+<!--                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5h5M5 8h2m6-3h2m-5 3h6m2-7H2a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h3v5l5-5h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1Z"/>-->
+<!--                   </svg>-->
+<!--                   Reply-->
+<!--                 </button>-->
+<!--               </div>-->
              </article>
              <h2 class="font-bold text-center mt-5">Your Feedback on This Product</h2>
               <form @submit.prevent="handleSubmit" class=" p-6  rounded-xl shadow-md space-y-6">
@@ -164,11 +164,11 @@
                 Best Offer: 6 Months Subscriptions
               </span>
                 <p class="text-[13px]">
-                  Payable<b>{{numberFormat(product?.data?.plans?.six_months?.total)}} {{product?.data?.curency}}</b> - Save 45%!
+                  Payable<b>{{numberFormat(product?.data?.plans?.six_months?.total )}} {{product?.data?.curency}}</b> - Save 45%!
                 </p>
               </div>
               <div>
-                <button class="mb-3 w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white
+                <button v-if="!product?.data?.active_item" @click="add_to_card(6)" class="mb-3 w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white
               bg-gradient-to-r from-green-600 to-green-800
               hover:from-green-700 hover:to-green-900
               rounded-lg mt-2 cursor-pointer
@@ -177,6 +177,16 @@
                     <path d="M31.739 8.875c-0.186-0.264-0.489-0.422-0.812-0.422h-21.223l-1.607-5.54c-0.63-2.182-2.127-2.417-2.741-2.417h-4.284c-0.549 0-0.993 0.445-0.993 0.993s0.445 0.993 0.993 0.993h4.283c0.136 0 0.549 0 0.831 0.974l5.527 20.311c0.12 0.428 0.511 0.724 0.956 0.724h13.499c0.419 0 0.793-0.262 0.934-0.657l4.758-14.053c0.11-0.304 0.064-0.643-0.122-0.907zM25.47 22.506h-12.046l-3.161-12.066h19.253zM23.5 26.504c-1.381 0-2.5 1.119-2.5 2.5s1.119 2.5 2.5 2.5 2.5-1.119 2.5-2.5c0-1.381-1.119-2.5-2.5-2.5zM14.5 26.504c-1.381 0-2.5 1.119-2.5 2.5s1.119 2.5 2.5 2.5 2.5-1.119 2.5-2.5c0-1.381-1.119-2.5-2.5-2.5z"></path>
                   </svg>
                   Add To Cart
+                </button>
+                <button v-if="product?.data?.active_item?.duration == 6" @click="remove_item(product?.data?.active_item?.id)" class="mb-3 w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white
+              bg-gradient-to-r from-red-600 to-red-800
+              hover:from-red-700 hover:to-red-900
+              rounded-lg mt-2 cursor-pointer
+              transition-all duration-300">
+                  <svg fill="currentColor" width="20px" height="20px" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M31.739 8.875c-0.186-0.264-0.489-0.422-0.812-0.422h-21.223l-1.607-5.54c-0.63-2.182-2.127-2.417-2.741-2.417h-4.284c-0.549 0-0.993 0.445-0.993 0.993s0.445 0.993 0.993 0.993h4.283c0.136 0 0.549 0 0.831 0.974l5.527 20.311c0.12 0.428 0.511 0.724 0.956 0.724h13.499c0.419 0 0.793-0.262 0.934-0.657l4.758-14.053c0.11-0.304 0.064-0.643-0.122-0.907zM25.47 22.506h-12.046l-3.161-12.066h19.253zM23.5 26.504c-1.381 0-2.5 1.119-2.5 2.5s1.119 2.5 2.5 2.5 2.5-1.119 2.5-2.5c0-1.381-1.119-2.5-2.5-2.5zM14.5 26.504c-1.381 0-2.5 1.119-2.5 2.5s1.119 2.5 2.5 2.5 2.5-1.119 2.5-2.5c0-1.381-1.119-2.5-2.5-2.5z"></path>
+                  </svg>
+                  Remove Item
                 </button>
 
               </div>
@@ -206,7 +216,7 @@
                 </svg>
                 Offer: 3 Months Subscriptions
               </span>
-                  <button class="  flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white
+                  <button v-if="!product?.data?.active_item" @click="add_to_card(3)" class="  flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white
               bg-gradient-to-r from-green-600 to-green-800
               hover:from-green-700 hover:to-green-900
               rounded-lg cursor-pointer
@@ -216,10 +226,20 @@
                     </svg>
                     Add To Cart
                   </button>
+                  <button v-if="product?.data?.active_item?.duration == 3"  @click="remove_item(product?.data?.active_item?.id)" class="  flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white
+              bg-gradient-to-r from-red-600 to-red-800
+              hover:from-red-700 hover:to-red-900
+              rounded-lg cursor-pointer
+              transition-all duration-300">
+                    <svg fill="currentColor" width="20px" height="20px" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M31.739 8.875c-0.186-0.264-0.489-0.422-0.812-0.422h-21.223l-1.607-5.54c-0.63-2.182-2.127-2.417-2.741-2.417h-4.284c-0.549 0-0.993 0.445-0.993 0.993s0.445 0.993 0.993 0.993h4.283c0.136 0 0.549 0 0.831 0.974l5.527 20.311c0.12 0.428 0.511 0.724 0.956 0.724h13.499c0.419 0 0.793-0.262 0.934-0.657l4.758-14.053c0.11-0.304 0.064-0.643-0.122-0.907zM25.47 22.506h-12.046l-3.161-12.066h19.253zM23.5 26.504c-1.381 0-2.5 1.119-2.5 2.5s1.119 2.5 2.5 2.5 2.5-1.119 2.5-2.5c0-1.381-1.119-2.5-2.5-2.5zM14.5 26.504c-1.381 0-2.5 1.119-2.5 2.5s1.119 2.5 2.5 2.5 2.5-1.119 2.5-2.5c0-1.381-1.119-2.5-2.5-2.5z"></path>
+                    </svg>
+                    Remove Item
+                  </button>
                 </div>
 
                 <p class="text-[13px]">
-                  Now at <b>{{numberFormat(product?.data?.plans?.six_months?.total)}} {{product?.data?.curency}}</b> - Save 20%!
+                  Now at <b>{{numberFormat(product?.data?.plans?.three_months?.total)}} {{product?.data?.curency}}</b> - Save 20%!
                 </p>
               </div>
               <div>
@@ -243,7 +263,7 @@
                   <p class="text-[13px]">
                     Billing Monthly
                   </p>
-                  <button class="  flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white
+                  <button v-if="!product?.data?.active_item" @click="add_to_card(1)" class="  flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white
               bg-gradient-to-r from-green-600 to-green-800
               hover:from-green-700 hover:to-green-900
               rounded-lg cursor-pointer
@@ -252,6 +272,16 @@
                       <path d="M31.739 8.875c-0.186-0.264-0.489-0.422-0.812-0.422h-21.223l-1.607-5.54c-0.63-2.182-2.127-2.417-2.741-2.417h-4.284c-0.549 0-0.993 0.445-0.993 0.993s0.445 0.993 0.993 0.993h4.283c0.136 0 0.549 0 0.831 0.974l5.527 20.311c0.12 0.428 0.511 0.724 0.956 0.724h13.499c0.419 0 0.793-0.262 0.934-0.657l4.758-14.053c0.11-0.304 0.064-0.643-0.122-0.907zM25.47 22.506h-12.046l-3.161-12.066h19.253zM23.5 26.504c-1.381 0-2.5 1.119-2.5 2.5s1.119 2.5 2.5 2.5 2.5-1.119 2.5-2.5c0-1.381-1.119-2.5-2.5-2.5zM14.5 26.504c-1.381 0-2.5 1.119-2.5 2.5s1.119 2.5 2.5 2.5 2.5-1.119 2.5-2.5c0-1.381-1.119-2.5-2.5-2.5z"></path>
                     </svg>
                     Add To Cart
+                  </button>
+                  <button v-if="product?.data?.active_item?.duration == 1" @click="remove_item(product?.data?.active_item?.id)" class="  flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white
+              bg-gradient-to-r from-red-600 to-red-800
+              hover:from-red-700 hover:to-red-900
+              rounded-lg cursor-pointer
+              transition-all duration-300">
+                    <svg fill="currentColor" width="20px" height="20px" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M31.739 8.875c-0.186-0.264-0.489-0.422-0.812-0.422h-21.223l-1.607-5.54c-0.63-2.182-2.127-2.417-2.741-2.417h-4.284c-0.549 0-0.993 0.445-0.993 0.993s0.445 0.993 0.993 0.993h4.283c0.136 0 0.549 0 0.831 0.974l5.527 20.311c0.12 0.428 0.511 0.724 0.956 0.724h13.499c0.419 0 0.793-0.262 0.934-0.657l4.758-14.053c0.11-0.304 0.064-0.643-0.122-0.907zM25.47 22.506h-12.046l-3.161-12.066h19.253zM23.5 26.504c-1.381 0-2.5 1.119-2.5 2.5s1.119 2.5 2.5 2.5 2.5-1.119 2.5-2.5c0-1.381-1.119-2.5-2.5-2.5zM14.5 26.504c-1.381 0-2.5 1.119-2.5 2.5s1.119 2.5 2.5 2.5 2.5-1.119 2.5-2.5c0-1.381-1.119-2.5-2.5-2.5z"></path>
+                    </svg>
+                    Remove Item
                   </button>
 
                 </div>
@@ -499,6 +529,7 @@ definePageMeta({
 })
 const route = useRoute()
 const auth = useAuthStore()
+const cart = useCartStore()
 const hoverCard = ref(null)
 const xsrfToken = useCookie('XSRF-TOKEN').value
 const config = useRuntimeConfig()
@@ -558,8 +589,6 @@ watch(product, (newVal) => {
   }
 }, { immediate: true });
 async function handleSubmit() {
-  console.log(form)
-
   if (!validate()) return;
   isSubmitting.value = true;
 
@@ -589,4 +618,15 @@ async function handleSubmit() {
   isSubmitting.value = false;
 }
 
+async function add_to_card(duration){
+  const payload = new FormData()
+  payload.append('duration', duration)
+  payload.append('product_id', form.product_id)
+  await cart.addToCart(payload)
+  refresh()
+}
+async function remove_item(item){
+  await cart.removeItem(item)
+  refresh()
+}
 </script>
